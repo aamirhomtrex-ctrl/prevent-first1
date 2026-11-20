@@ -1,0 +1,2148 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>*,*::before,*::after{box-sizing:border-box}body{margin:0}[hidden]{display:none!important}</style></head><body><title>Prevent First</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=Figtree:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: left-aligned reading column. Hero with a live example beside it, the form as stacked sections, results as expandable condition rows ranked by what needs attention first. */
+:root{
+  --bg:#F1F5F4; --surface:#FFFFFF; --ink:#0E2220; --muted:#4D625E; --line:#D3DDDA;
+  --accent:#0A6B5F; --accent-ink:#FFFFFF; --accent-soft:#DCEEE9;
+  --ok:#256B43; --ok-bg:#E1F1E7; --warn:#8A5A00; --warn-bg:#FAEDCF;
+  --high:#A8231B; --high-bg:#FBE2DF; --info:#25508F; --info-bg:#E2EAF7;
+  --alert:#B3261E; --alert-ink:#FFFFFF;
+  --f-display:'Bricolage Grotesque','Segoe UI',system-ui,sans-serif;
+  --f-body:'Figtree',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --f-mono:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0C1715; --surface:#12211E; --ink:#E4EFEC; --muted:#9FB4AF; --line:#25403A;
+    --accent:#4FC4B1; --accent-ink:#05201C; --accent-soft:#153A35;
+    --ok:#7ED69C; --ok-bg:#163421; --warn:#E9B955; --warn-bg:#33270E;
+    --high:#FF9A91; --high-bg:#3C1815; --info:#94B8F2; --info-bg:#172A47;
+    --alert:#FF8078; --alert-ink:#2B0807; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0C1715; --surface:#12211E; --ink:#E4EFEC; --muted:#9FB4AF; --line:#25403A;
+  --accent:#4FC4B1; --accent-ink:#05201C; --accent-soft:#153A35;
+  --ok:#7ED69C; --ok-bg:#163421; --warn:#E9B955; --warn-bg:#33270E;
+  --high:#FF9A91; --high-bg:#3C1815; --info:#94B8F2; --info-bg:#172A47;
+  --alert:#FF8078; --alert-ink:#2B0807; color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+body{
+  background:var(--bg); color:var(--ink); font-family:var(--f-body); font-size:16px; line-height:1.55;
+  padding-block:0 48px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+}
+.wrap{max-width:1040px;margin:0 auto}
+h1,h2,h3{font-family:var(--f-display);letter-spacing:-0.02em;text-wrap:balance;margin:0}
+h1{font-size:clamp(2rem,5.4vw,3.4rem);line-height:1.05;font-weight:800}
+h2{font-size:clamp(1.4rem,3vw,1.9rem);line-height:1.15;font-weight:800}
+h3{font-size:1.1rem;font-weight:600;letter-spacing:-0.01em}
+p{margin:0}
+a{color:var(--accent)}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.eyebrow{font-family:var(--f-mono);font-size:.74rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+
+/* header */
+.bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 24px;padding-block:18px;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--f-display);font-weight:800;font-size:1.25rem;letter-spacing:-0.02em}
+.brand svg{width:44px;height:18px;color:var(--accent)}
+.tabs{display:flex;gap:4px}
+.tab{background:none;border:0;border-bottom:2px solid transparent;padding:8px 12px;cursor:pointer;color:var(--muted);font-weight:500;min-height:44px}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent);font-weight:600}
+
+/* hero */
+.hero{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:32px 48px;padding-block:40px 28px;align-items:start}
+.hero-copy{display:flex;flex-direction:column;gap:18px}
+.hero-copy .lede{font-size:1.1rem;color:var(--muted);max-width:46ch}
+.cta-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:10px 20px;border-radius:8px;border:1.5px solid var(--accent);background:var(--accent);color:var(--accent-ink);font-weight:600;cursor:pointer;text-decoration:none}
+.btn:hover{filter:brightness(1.06)}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn.small{min-height:38px;padding:6px 14px;font-size:.92rem}
+.privacy{font-size:.88rem;color:var(--muted)}
+.preview{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:12px}
+.preview .row{display:flex;flex-direction:column;gap:4px;padding-top:12px;border-top:1px solid var(--line)}
+.preview .row:first-of-type{border-top:0;padding-top:0}
+.preview .head{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.preview .nm{font-weight:600}
+.preview .act{font-size:.9rem;color:var(--muted)}
+.ecg{display:block;width:100%;height:20px;color:var(--accent);opacity:.9}
+
+/* pills */
+.pill{display:inline-flex;align-items:center;font-family:var(--f-mono);font-size:.72rem;letter-spacing:.04em;text-transform:uppercase;padding:3px 9px;border-radius:999px;white-space:nowrap;font-weight:500}
+.pill-low{background:var(--ok-bg);color:var(--ok)}
+.pill-mod{background:var(--warn-bg);color:var(--warn)}
+.pill-high{background:var(--high-bg);color:var(--high)}
+.pill-info{background:var(--info-bg);color:var(--info)}
+.pill-warn{background:var(--alert);color:var(--alert-ink)}
+
+/* sections / form */
+.col{max-width:760px}
+.sec{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:18px;margin-top:16px}
+.sec>.sec-h{display:flex;flex-direction:column;gap:4px}
+.sec .hint{color:var(--muted);font-size:.92rem}
+fieldset{border:0;padding:0;margin:0;min-width:0;display:flex;flex-direction:column;gap:8px}
+legend{padding:0;font-weight:600;margin-bottom:6px}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opt{display:inline-flex;align-items:center;gap:10px;min-height:44px;padding:8px 14px;border:1.5px solid var(--line);border-radius:8px;cursor:pointer;background:var(--bg);max-width:100%;line-height:1.35}
+.opt input{accent-color:var(--accent);width:18px;height:18px;margin:0;flex:none}
+.opt:has(input:checked){background:var(--accent-soft);border-color:var(--accent)}
+.opt:has(input:focus-visible){outline:2px solid var(--accent);outline-offset:2px}
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field label{font-weight:600}
+.field .unit{font-weight:400;color:var(--muted);font-size:.88rem}
+input[type="number"]{font:inherit;font-size:16px;min-height:46px;padding:8px 12px;border:1.5px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);width:100%}
+input[type="number"]:focus-visible{outline:2px solid var(--accent);outline-offset:1px;border-color:var(--accent)}
+.readout{font-size:.95rem;color:var(--muted);min-height:1.5em}
+.readout b{color:var(--ink);font-family:var(--f-mono);font-weight:500}
+.err{color:var(--high);font-size:.9rem;font-weight:500}
+.err:empty{display:none}
+
+/* emergency */
+.now{border-color:var(--alert)}
+.alert{background:var(--alert);color:var(--alert-ink);border-radius:10px;padding:16px 18px;display:flex;flex-direction:column;gap:6px}
+.alert strong{font-family:var(--f-display);font-size:1.25rem;letter-spacing:-0.01em}
+.alert .nums{font-family:var(--f-mono);font-size:.95rem}
+
+/* results */
+.rhead{display:flex;flex-direction:column;gap:10px;padding-block:32px 8px}
+.rhead .meta{color:var(--muted)}
+.banner{background:var(--info-bg);color:var(--info);border-radius:10px;padding:12px 16px;display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between;margin-top:12px}
+.start{display:flex;flex-direction:column;gap:10px}
+.start ol{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:0;counter-reset:s}
+.start li{counter-increment:s;display:grid;grid-template-columns:34px minmax(0,1fr);gap:4px 10px;padding:12px 0;border-top:1px solid var(--line)}
+.start li:first-child{border-top:0;padding-top:4px}
+.start li::before{content:counter(s);font-family:var(--f-mono);color:var(--accent);font-weight:500;font-size:1.05rem;grid-row:span 2}
+.start .nm{font-weight:600}
+.start .act{color:var(--muted)}
+.legend{font-size:.88rem;color:var(--muted)}
+.cards{display:flex;flex-direction:column;gap:10px;margin-top:16px}
+details.card{background:var(--surface);border:1px solid var(--line);border-radius:12px}
+details.card[open]{border-color:var(--accent)}
+details.card>summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:minmax(0,1fr) auto 20px;gap:2px 12px;align-items:center;padding:14px 16px;min-height:56px}
+details.card>summary::-webkit-details-marker{display:none}
+details.card>summary .t{font-family:var(--f-display);font-weight:600;font-size:1.08rem;letter-spacing:-0.01em}
+details.card>summary .s{grid-column:1/2;color:var(--muted);font-size:.9rem}
+details.card>summary .pillbox{grid-column:2/3;grid-row:1/3;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+details.card>summary::after{content:"";grid-column:3/4;grid-row:1/3;width:8px;height:8px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);justify-self:center;margin-top:-4px}
+details.card[open]>summary::after{transform:rotate(-135deg);margin-top:4px}
+.body{padding:4px 16px 18px;display:flex;flex-direction:column;gap:16px;border-top:1px solid var(--line)}
+.body>*:first-child{margin-top:12px}
+.body h4{margin:0 0 6px;font-family:var(--f-mono);font-weight:500;font-size:.74rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.body ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}
+.body li{padding-left:22px;position:relative}
+.dd{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.dd>div{min-width:0}
+.do li::before,.dont li::before{position:absolute;left:0;top:0;font-weight:700}
+.do li::before{content:"\2713";color:var(--ok)}
+.dont li::before{content:"\00D7";color:var(--high);font-size:1.15em;line-height:1.3}
+.scr li::before{content:"\2022";position:absolute;left:6px;color:var(--accent)}
+.why{background:var(--bg);border-radius:8px;padding:10px 14px}
+.why ul{gap:4px}
+.why li::before{content:"+";position:absolute;left:2px;color:var(--muted);font-family:var(--f-mono)}
+.src{font-size:.88rem;color:var(--muted)}
+.flag{background:var(--alert);color:var(--alert-ink);border-radius:8px;padding:10px 14px;font-weight:500}
+
+/* everyone */
+.nums{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.num{border-top:2px solid var(--accent);padding-top:8px;display:flex;flex-direction:column;gap:2px}
+.num .k{font-weight:600}
+.num .v{font-family:var(--f-mono);font-size:.9rem;color:var(--muted);line-height:1.5}
+.habits{margin:0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:8px 24px}
+.habits li{padding-left:22px;position:relative}
+.habits li::before{content:"\2713";position:absolute;left:0;color:var(--ok);font-weight:700}
+.check ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}
+.check li{padding-left:26px;position:relative}
+.check li::before{content:"";position:absolute;left:0;top:.3em;width:14px;height:14px;border:1.5px solid var(--muted);border-radius:3px}
+textarea.copy{width:100%;min-height:160px;font:inherit;font-size:.9rem;padding:10px;border:1.5px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+
+/* library */
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+.chip{border:1.5px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 14px;min-height:40px;cursor:pointer;font-weight:500}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+
+footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:.88rem;display:flex;flex-direction:column;gap:6px}
+
+@media (max-width:820px){
+  .hero{grid-template-columns:minmax(0,1fr);padding-block:28px 20px}
+}
+@media (max-width:520px){
+  details.card>summary{grid-template-columns:minmax(0,1fr) 20px}
+  details.card>summary .pillbox{grid-column:1/2;grid-row:auto;justify-content:flex-start;order:3;margin-top:6px}
+  details.card>summary::after{grid-column:2/3;grid-row:1/2}
+  .sec{padding:16px}
+}
+@media (prefers-reduced-motion:no-preference){
+  details.card>summary::after{transition:transform .15s}
+}
+
+/* ===== Agent layer ===== */
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.demo{background:transparent;border:1.5px dashed var(--line);border-radius:8px;color:var(--muted);font-family:var(--f-mono);font-size:.74rem;letter-spacing:.04em;padding:8px 12px;min-height:40px;cursor:pointer}
+.demo:hover{color:var(--accent);border-color:var(--accent)}
+input[type="date"],input[type="url"],input[type="email"],input[type="tel"]{font:inherit;font-size:16px;min-height:46px;padding:8px 12px;border:1.5px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);width:100%}
+input[type="date"]:focus-visible,input[type="url"]:focus-visible,input[type="email"]:focus-visible,input[type="tel"]:focus-visible,textarea.qf-text:focus-visible{outline:2px solid var(--accent);outline-offset:1px;border-color:var(--accent)}
+textarea.qf-text{width:100%;min-height:92px;font:inherit;font-size:16px;line-height:1.5;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);resize:vertical}
+
+.qf{background:var(--accent-soft);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.qf-h{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.qf-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+.qf-row .btn{margin:0}
+.qf-file:focus-visible + label.btn{outline:2px solid var(--accent);outline-offset:2px}
+.qf-out{display:flex;flex-direction:column;gap:8px;font-size:.95rem}
+.qf-out:empty{display:none}
+.qf-out .got{display:flex;flex-wrap:wrap;gap:6px}
+.qf-out .miss{color:var(--warn);font-weight:500}
+
+.agent .think{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:12px}
+.agent .think li{padding-left:22px;position:relative}
+.agent .think li::before{content:"";position:absolute;left:4px;top:.62em;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.trace{margin:0;padding:12px 14px;list-style:none;display:flex;flex-direction:column;gap:4px;background:var(--bg);border-radius:8px;font-family:var(--f-mono);font-size:.8rem;color:var(--muted)}
+.trace li::before{content:"\2713\00a0";color:var(--ok)}
+.qa{display:flex;flex-direction:column;gap:8px;padding-top:14px;border-top:1px solid var(--line)}
+.qa:first-of-type{border-top:0;padding-top:0}
+.qa .why{background:none;padding:0;font-size:.85rem;color:var(--muted)}
+.a-src{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+
+.aa{margin-top:2px;border:1.5px solid var(--accent);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:10px;background:var(--accent-soft)}
+.aa-h{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.aa-h h4{margin:0}
+.aa-btns{display:flex;flex-wrap:wrap;gap:8px}
+.aa .hint{font-size:.88rem;color:var(--muted)}
+
+.modal{position:fixed;inset:0;z-index:50;display:flex;align-items:flex-start;justify-content:center;
+  padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.modal[hidden]{display:none}
+.modal-bg{position:absolute;inset:0;background:rgba(8,20,18,.62)}
+.modal-card{position:relative;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:12px;width:100%;max-width:780px;max-height:100%;overflow:auto;display:flex;flex-direction:column}
+.modal-h{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--surface);z-index:1}
+.modal-h h2{font-size:1.25rem}
+.modal-b{padding:18px;display:flex;flex-direction:column;gap:14px;min-width:0}
+
+.sheet{border:1px solid var(--line);border-radius:8px;padding:18px;background:var(--bg);display:flex;flex-direction:column;gap:12px}
+.sheet h3{font-family:var(--f-mono);font-weight:500;font-size:.76rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0}
+.sheet ul{margin:4px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px}
+.sheet li{padding-left:16px;position:relative}
+.sheet li::before{content:"\2013";position:absolute;left:0;color:var(--muted)}
+.sheet .sh-title{font-family:var(--f-display);font-weight:800;font-size:1.3rem;letter-spacing:-0.02em}
+
+.lookup{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px;font-family:var(--f-mono);font-size:.85rem;color:var(--muted)}
+.lookup li{opacity:.35}
+.lookup li.on{opacity:1;color:var(--ink)}
+.lookup li.on::before{content:"\2713\00a0";color:var(--ok)}
+.lookup li:not(.on)::before{content:"\2026\00a0"}
+.tblwrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px}
+table.tbl{border-collapse:collapse;width:100%;min-width:520px;font-size:.92rem}
+.tbl th,.tbl td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+.tbl th{font-family:var(--f-mono);font-weight:500;font-size:.74rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:var(--bg)}
+.tbl td.n{font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.tbl tr:last-child td{border-bottom:0}
+.tbl tr.tot td{font-weight:600;background:var(--bg)}
+.tbl .best{color:var(--ok);font-weight:600}
+.notice{background:var(--warn-bg);color:var(--warn);border-radius:8px;padding:10px 14px;font-size:.9rem}
+.links{display:flex;flex-wrap:wrap;gap:8px}
+.rem{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.okbox{background:var(--ok-bg);color:var(--ok);border-radius:8px;padding:10px 14px;font-weight:500}
+.mono-ta{width:100%;min-height:140px;font-family:var(--f-mono);font-size:.78rem;padding:10px;border:1.5px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+@media (max-width:520px){
+  .modal-b{padding:14px}
+  .modal-h{padding:12px 14px}
+}
+</style>
+
+<div class="wrap">
+  <header class="bar">
+    <div class="brand">
+      <svg viewBox="0 0 120 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="0,13 30,13 36,13 41,3 47,22 52,13 60,13 66,9 72,13 120,13"/></svg>
+      Prevent First
+    </div>
+    <nav class="tabs" role="tablist" aria-label="Sections">
+      <button class="tab" role="tab" id="tab-check" aria-selected="true" aria-controls="view-check" type="button">Check my risk</button>
+      <button class="tab" role="tab" id="tab-lib" aria-selected="false" aria-controls="view-lib" type="button">Condition library</button>
+    </nav>
+    <a class="demo" id="biz-link" href="business/" style="text-decoration:none;display:inline-flex;align-items:center">For employers &amp; clinics</a>
+    <button class="demo" id="demo-btn" type="button">Load Judge Demo Profile</button>
+  </header>
+
+  <main>
+    <!-- CHECK VIEW -->
+    <div id="view-check" role="tabpanel" aria-labelledby="tab-check">
+      <div id="intro">
+        <section class="hero" aria-labelledby="h-hero">
+          <div class="hero-copy">
+            <p class="eyebrow">Prevention guide for 15 serious conditions</p>
+            <h1 id="h-hero">Know what to do, and what to avoid, before illness starts.</h1>
+            <p class="lede">Answer a few questions about your body and habits. You get the do’s, don’ts, screening tests and warning signs for heart attack, stroke, diabetes, cancers, dementia, sepsis and more, matched to your profile.</p>
+            <div class="cta-row">
+              <a class="btn" href="#sec-now" id="start-btn">Start the check</a>
+              <button class="btn ghost" type="button" id="example-btn">See an example plan</button>
+              <a class="btn ghost" href="business/" id="biz-cta">For employers &amp; clinics: team view</a>
+            </div>
+            <p class="privacy">Takes about two minutes. Nothing is saved. Your answers stay on this page unless you choose the optional “Think deeper” AI step or ask for your reminder plan by email.</p>
+          </div>
+          <aside class="preview" aria-label="Example result">
+            <div class="head"><span class="eyebrow">Example result</span><span class="eyebrow" id="pv-who"></span></div>
+            <svg class="ecg" viewBox="0 0 300 20" preserveAspectRatio="none" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><polyline points="0,11 70,11 78,11 84,2 91,19 97,11 130,11 138,8 146,11 210,11 218,11 224,2 231,19 237,11 300,11"/></svg>
+            <div id="pv-rows"></div>
+          </aside>
+        </section>
+
+        <section class="sec now col" id="sec-now" aria-labelledby="h-now">
+          <div class="sec-h">
+            <h2 id="h-now">Is something happening right now?</h2>
+            <p class="hint">This tool is for prevention, not emergencies. Tick anything that is happening now.</p>
+          </div>
+          <fieldset id="em-set"><legend class="sr" style="position:absolute;left:-9999px">Emergency symptoms</legend></fieldset>
+          <div class="alert" id="alert" role="alert" hidden></div>
+        </section>
+
+        <form id="profile" class="col" novalidate autocomplete="off"></form>
+      </div>
+
+      <div id="results" hidden tabindex="-1"></div>
+      <div id="agent" hidden tabindex="-1"></div>
+    </div>
+
+    <!-- LIBRARY VIEW -->
+    <div id="view-lib" role="tabpanel" aria-labelledby="tab-lib" hidden>
+      <div class="col" style="padding-top:32px">
+        <p class="eyebrow">Condition library</p>
+        <h2 style="margin-top:6px">Fifteen conditions, one page each</h2>
+        <p class="hint" style="margin-top:8px;color:var(--muted)">General guidance for adults. Open a condition for the do’s, don’ts, screening tests and warning signs. For advice matched to you, use <b>Check my risk</b>.</p>
+        <div class="chips" id="chips" role="group" aria-label="Filter by category"></div>
+        <div class="cards" id="lib-cards"></div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>General information based on public health guidance from WHO, NHS, CDC and national screening programmes. It is not medical advice and does not diagnose anything. Risk levels count the factors you report; they are not a percentage chance. Adults 18 and over only.</p>
+    <p>In an emergency call your local number: 112 (India, EU), 911 (US, Canada), 999 (UK). In India, 108 is the ambulance line.</p>
+  </footer>
+</div>
+
+<div class="modal" id="modal" hidden><div class="modal-bg"></div><div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title"><div class="modal-h"><h2 id="modal-title"></h2><button class="btn small ghost" type="button" id="modal-x">Close</button></div><div class="modal-b" id="modal-body"></div></div></div>
+
+<script>
+(function(){
+/* ---------- DATA ---------- */
+var WARN=[
+ {id:'cough',t:'Cough lasting 3 weeks or more'},
+ {id:'weight',t:'Weight loss without trying'},
+ {id:'ulcer',t:'Mouth sore, or white or red patch, not healing for 2 weeks'},
+ {id:'hoarse',t:'Hoarse voice for 3 weeks or more'},
+ {id:'effort',t:'Chest tightness or breathlessness on mild effort'},
+ {id:'stool',t:'Blood in stool, black stools, or a bowel habit change lasting weeks'},
+ {id:'thirst',t:'Extreme thirst, passing urine very often, or blurred vision'},
+ {id:'swell',t:'Swollen ankles or eyes, or foamy urine'},
+ {id:'labsugar',t:'A lab report or home test showed high blood sugar (fasting 126 mg/dL or more, or HbA1c 6.5% or more)'},
+ {id:'labbp',t:'Blood pressure readings of 140/90 mmHg or higher'},
+ {id:'memory',t:'Memory or thinking changes: repeating questions, getting lost on familiar routes, trouble with money or familiar tasks, or a change in personality'},
+ {id:'yellow',t:'Yellow eyes or skin, or dark urine'},
+ {id:'lump',t:'New lump or change in a breast',f:true},
+ {id:'bleed',t:'Vaginal bleeding between periods, after sex or after menopause',f:true}
+];
+var EMERG=[
+ ['chest','Chest pain, pressure or tightness, especially spreading to the arm, jaw or back, or with sweating or breathlessness'],
+ ['stroke','Sudden weakness or numbness on one side, a drooping face, slurred speech, or sudden loss of vision'],
+ ['breath','Severe difficulty breathing, or unable to speak a full sentence'],
+ ['head','A sudden, severe headache unlike any before'],
+ ['faint','Fainting or collapse'],
+ ['blood','Coughing up or vomiting blood'],
+ ['sugar','Confusion, fast deep breathing or repeated vomiting with extreme thirst (possible diabetic emergency)'],
+ ['sepsis','Signs of a severe infection (sepsis): confusion or unusual drowsiness, fast breathing, shivering with a very high or very low temperature, cold, pale or mottled skin, passing hardly any urine, or feeling you might die']
+];
+var CATS=['Heart & stroke','Diabetes, liver & kidney','Cancer','Lungs & infection','Brain & memory'];
+var LV={high:'Higher',mod:'Moderate',low:'Lower'};
+
+var C=[
+{id:'t2d',name:'Type 2 diabetes',cat:CATS[1],known:'dm',warn:['thirst','labsugar'],
+ about:'Blood sugar stays too high for years. It raises the risk of heart attack, stroke, kidney failure, blindness and amputation, and often causes no symptoms at first.',
+ applies:function(p){return true;},
+ factors:function(p){var r=[],a=function(n,t){r.push([n,t]);};
+  var thr=p.asian?30:35;
+  if(p.age>=45)a(2,'Age 45 or older');else if(p.age>=thr)a(1,'Age '+thr+' or older');
+  if(p.obese)a(2,'Weight in the obese range');else if(p.over)a(1,'Weight above the healthy range');
+  if(p.central)a(1,'Waist measurement above the risk line');
+  if(p.low)a(1,'Little physical activity');
+  if(p.fam.has('dm'))a(2,'Parent or sibling with diabetes');
+  if(p.diet.has('sugar'))a(1,'Sugary drinks or sweets most days');
+  if(p.known.has('predm'))a(3,'Borderline blood sugar (prediabetes)');
+  if(p.known.has('htn'))a(1,'High blood pressure');
+  if(p.known.has('chol'))a(1,'High cholesterol');
+  if(p.asian)a(1,'Asian background: diabetes tends to develop at a lower weight');
+  return r;},
+ first:'Get an HbA1c or fasting blood sugar test.',
+ doList:['Walk or exercise for 150 minutes a week, and take a 10 to 15 minute walk after meals.','Fill half your plate with vegetables. Choose whole grains, dal and nuts over white rice, maida and sweets.','If you are overweight, losing 5 to 7% of your body weight and staying active can cut diabetes risk by more than half in trials.','Sleep 7 to 8 hours on a regular schedule.'],
+ dontList:['Don’t rely on sugary drinks, packaged juices or sweets every day.','Don’t skip meals and then eat heavily late at night.','Don’t smoke or use tobacco.','Don’t ignore a borderline result. Repeat the test every year.'],
+ screen:function(p){var thr=p&&p.asian?30:35;
+  if(!p)return ['HbA1c or fasting blood glucose from age 35 (30 for Asian adults), or earlier if you are overweight with another risk factor. Repeat every 3 years if normal, every year if borderline.'];
+  var due=p.age>=thr||((p.over||p.obese)&&(p.fam.has('dm')||p.low||p.known.has('htn')||p.known.has('chol')||p.known.has('predm')));
+  return [due?'HbA1c or fasting blood glucose: get tested now, then every 3 years if normal and every year if borderline.':'HbA1c or fasting blood glucose: start at age '+thr+', or sooner if you gain weight or a relative has diabetes.'];},
+ signs:'Extreme thirst, passing urine very often, blurred vision, tiredness, cuts that heal slowly, unexplained weight loss.',
+ src:['WHO: Diabetes','https://www.who.int/news-room/fact-sheets/detail/diabetes']},
+
+{id:'htn',name:'High blood pressure',cat:CATS[0],known:'htn',warn:['labbp'],
+ about:'Pressure in your arteries stays high. It quietly damages the heart, brain, kidneys and eyes, and is a leading cause of heart attack and stroke.',
+ applies:function(p){return true;},
+ factors:function(p){var r=[],a=function(n,t){r.push([n,t]);};
+  if(p.age>=55)a(2,'Age 55 or older');else if(p.age>=40)a(1,'Age 40 or older');
+  if(p.obese)a(2,'Weight in the obese range');else if(p.over)a(1,'Weight above the healthy range');
+  if(p.low)a(1,'Little physical activity');
+  if(p.diet.has('salt'))a(2,'Salty food, pickles, papad or extra salt every day');
+  if(p.heavy)a(1,'Heavy drinking');
+  if(p.smoker||p.chew)a(1,'Tobacco use');
+  if(p.shortsleep)a(1,'Sleeping under 6 hours');
+  if(p.fam.has('heart'))a(1,'Early heart disease in the family');
+  if(p.known.has('dm'))a(1,'Diabetes');
+  if(p.known.has('kidney'))a(1,'Kidney disease');
+  return r;},
+ first:'Check your blood pressure, and repeat it on another day.',
+ doList:['Keep salt under 5 g a day (about one teaspoon in total), counting pickles, papad, namkeen and packaged food.','Eat more fruit, vegetables, dal and nuts for potassium.','Exercise briskly for 30 minutes on most days.','Measure your blood pressure at a clinic, chemist or at home, seated and rested.'],
+ dontList:['Don’t add extra salt at the table.','Don’t stop blood pressure medicine because readings look normal.','Don’t smoke or chew tobacco.','Don’t ignore readings of 140/90 mmHg or higher. Repeat them and see a doctor.'],
+ screen:function(p){if(!p)return ['Blood pressure at least every 1 to 2 years from age 18, and every year from age 40 or if you have risk factors. Aim for below 120/80 mmHg.'];
+  return [(p.age>=40||p.known.has('htn')||p.known.has('dm')||p.known.has('kidney')?'Blood pressure: check every year.':'Blood pressure: check every 1 to 2 years.')+' Aim for below 120/80 mmHg.'];},
+ signs:'Usually none. Very high readings with severe headache, chest pain, vision changes or confusion need urgent care.',
+ src:['WHO: Hypertension','https://www.who.int/news-room/fact-sheets/detail/hypertension']},
+
+{id:'chd',name:'Heart attack (coronary heart disease)',cat:CATS[0],known:'cvd',warn:['effort','swell'],
+ about:'Fatty deposits narrow the arteries that feed the heart. A blockage causes a heart attack, and sometimes the attack is the first sign.',
+ applies:function(p){return true;},
+ factors:function(p){var r=[],a=function(n,t){r.push([n,t]);};
+  var hi=p.sex==='male'?45:55,lo=p.sex==='male'?35:45;
+  if(p.age>=hi)a(2,'Age '+hi+' or older');else if(p.age>=lo)a(1,'Age '+lo+' or older');
+  if(p.smoker)a(3,'Current smoking');
+  if(p.chew)a(1,'Chewing tobacco');
+  if(p.known.has('htn'))a(2,'High blood pressure');
+  if(p.known.has('chol'))a(2,'High cholesterol');
+  if(p.known.has('dm'))a(2,'Diabetes');else if(p.known.has('predm'))a(1,'Borderline blood sugar');
+  if(p.obese)a(2,'Weight in the obese range');else if(p.over)a(1,'Weight above the healthy range');
+  if(p.central)a(1,'Waist measurement above the risk line');
+  if(p.low)a(1,'Little physical activity');
+  if(p.diet.has('fried'))a(1,'Fried or packaged food most days');
+  if(p.fam.has('heart'))a(2,'Parent or sibling with early heart disease');
+  if(p.heavy)a(1,'Heavy drinking');
+  if(p.air)a(1,'Smoky cooking or heavy air pollution');
+  return r;},
+ first:'Check blood pressure, cholesterol and blood sugar, and ask for a 10-year heart risk estimate.',
+ doList:['Quit all tobacco. Heart risk starts falling soon after you stop.','Cut back on deep-fried food, hydrogenated fat (vanaspati) and packaged snacks.','Do 150 minutes of brisk activity a week.','Know your numbers: blood pressure, LDL cholesterol and blood sugar.'],
+ dontList:['Don’t ignore chest tightness, jaw or arm pain, or breathlessness on mild effort.','Don’t smoke, vape or use smokeless tobacco.','Don’t replace prescribed medicines with supplements.','Don’t wait at home once heart attack symptoms begin. Call emergency services.'],
+ screen:function(p){var early=p&&(p.fam.has('heart')||p.known.has('htn')||p.known.has('chol')||p.known.has('dm')||p.smoker);
+  return [!p||!early?'Cholesterol (lipid profile) every 4 to 6 years from age 20.':'Cholesterol (lipid profile): every year, because you have risk factors.','Ask your doctor to estimate your 10-year heart and stroke risk from age 40, or sooner with risk factors.'];},
+ signs:'Chest pressure or tightness on effort, breathlessness on mild effort, unusual tiredness, pain spreading to the arm, jaw or back.',
+ src:['WHO: Cardiovascular diseases','https://www.who.int/news-room/fact-sheets/detail/cardiovascular-diseases-(cvds)']},
+
+{id:'stroke',name:'Stroke',cat:CATS[0],known:'cvd',warn:[],
+ about:'A clot or a burst vessel cuts blood supply to part of the brain. Stroke is a major cause of death and lasting disability.',
+ applies:function(p){return true;},
+ factors:function(p){var r=[],a=function(n,t){r.push([n,t]);};
+  if(p.age>=65)a(3,'Age 65 or older');else if(p.age>=55)a(2,'Age 55 or older');
+  if(p.known.has('htn'))a(3,'High blood pressure');
+  if(p.smoker)a(2,'Current smoking');
+  if(p.chew)a(1,'Chewing tobacco');
+  if(p.known.has('dm'))a(1,'Diabetes');
+  if(p.known.has('chol'))a(1,'High cholesterol');
+  if(p.fam.has('stroke'))a(2,'Parent or sibling who had a stroke');
+  if(p.low)a(1,'Little physical activity');
+  if(p.heavy)a(1,'Heavy drinking');
+  if(p.diet.has('salt'))a(1,'High salt intake');
+  if(p.obese)a(1,'Weight in the obese range');
+  return r;},
+ first:'Get your blood pressure checked and learn the FAST signs.',
+ doList:['Keep blood pressure controlled. It is the biggest preventable cause.','Quit tobacco, stay active and keep your weight in range.','Learn FAST: Face drooping, Arm weakness, Speech trouble, Time to call emergency services.','If a doctor has found an irregular heartbeat (atrial fibrillation), take prescribed blood thinners as advised.'],
+ dontList:['Don’t ignore a brief spell of weakness or slurred speech that passes. It is a warning and needs same-day care.','Don’t stop blood pressure or blood thinner medicine on your own.','Don’t binge drink.','Don’t wait to see if stroke symptoms pass.'],
+ screen:function(p){return ['Blood pressure at least every year.','Ask a doctor to check your pulse for an irregular rhythm from age 65, or sooner if you notice palpitations.','Cholesterol and blood sugar checks as listed under heart attack and diabetes.'];},
+ signs:'Short spells of weakness, numbness, vision loss or slurred speech, even if they pass within minutes.',
+ src:['WHO: Cardiovascular diseases','https://www.who.int/news-room/fact-sheets/detail/cardiovascular-diseases-(cvds)']},
+
+{id:'fatty',name:'Fatty liver disease',cat:CATS[1],known:'liver',warn:['yellow'],
+ about:'Fat builds up in the liver from excess weight, diabetes or alcohol. Over years it can scar the liver (cirrhosis) and raise liver cancer risk.',
+ applies:function(p){return true;},
+ factors:function(p){var r=[],a=function(n,t){r.push([n,t]);};
+  if(p.obese)a(2,'Weight in the obese range');else if(p.over)a(1,'Weight above the healthy range');
+  if(p.central)a(1,'Waist measurement above the risk line');
+  if(p.known.has('dm'))a(2,'Diabetes');else if(p.known.has('predm'))a(1,'Borderline blood sugar');
+  if(p.known.has('chol'))a(1,'High cholesterol');
+  if(p.low)a(1,'Little physical activity');
+  if(p.diet.has('sugar'))a(1,'Sugary drinks or sweets most days');
+  if(p.diet.has('fried'))a(1,'Fried or packaged food most days');
+  if(p.heavy)a(2,'Heavy drinking');
+  return r;},
+ first:'Ask for liver function tests and a liver ultrasound.',
+ doList:['If you are overweight, aim to lose 7 to 10% of your body weight. It can reduce liver fat and inflammation.','Exercise 150 minutes a week, with some strength work.','Cut sugary drinks, sweets, refined flour and fried food.','Keep alcohol minimal or avoid it, and ask your doctor about hepatitis B vaccination.'],
+ dontList:['Don’t crash diet or fast heavily. Rapid weight loss can harm the liver.','Don’t take herbal or “liver detox” products without medical advice.','Don’t drink heavily.','Don’t ignore yellow eyes, dark urine or a swollen belly.'],
+ screen:function(p){return ['Liver function tests (ALT and AST) with routine blood work.','Ask about a liver ultrasound or a fibrosis score (FIB-4) if you have diabetes, a large waistline or abnormal liver tests.'];},
+ signs:'Usually none early. Later: yellow eyes or skin, dark urine, a swollen belly or legs, ongoing discomfort in the upper right belly.',
+ src:['NHS: Fatty liver disease','https://www.nhs.uk/conditions/non-alcoholic-fatty-liver-disease/']},
+
+{id:'ckd',name:'Chronic kidney disease',cat:CATS[1],known:'kidney',warn:['swell'],
+ about:'The kidneys lose their filtering ability slowly and silently. Advanced disease needs dialysis or a transplant and sharply raises heart risk.',
+ applies:function(p){return true;},
+ factors:function(p){var r=[],a=function(n,t){r.push([n,t]);};
+  if(p.known.has('dm'))a(3,'Diabetes');
+  if(p.known.has('htn'))a(3,'High blood pressure');
+  if(p.age>=60)a(2,'Age 60 or older');
+  if(p.fam.has('kidney'))a(2,'Parent or sibling with kidney disease');
+  if(p.pain)a(2,'Painkillers such as diclofenac or ibuprofen most days');
+  if(p.obese)a(1,'Weight in the obese range');
+  if(p.smoker)a(1,'Current smoking');
+  if(p.diet.has('salt'))a(1,'High salt intake');
+  return r;},
+ first:'Ask for a creatinine (eGFR) blood test and a urine albumin test.',
+ doList:['Keep blood pressure and blood sugar in target. They are the two biggest causes.','Drink water normally. Don’t force extra unless your doctor advises it.','Cut salt and eat balanced portions of protein.','Stay active and keep a healthy weight.'],
+ dontList:['Don’t use painkillers like diclofenac, ibuprofen or high-dose aspirin regularly without medical advice.','Don’t take unregulated herbal remedies or “kidney cleanse” products.','Don’t smoke.','Don’t skip yearly tests if you have diabetes or high blood pressure.'],
+ screen:function(p){var hi=p&&(p.known.has('dm')||p.known.has('htn')||p.known.has('kidney'));
+  return [hi?'Blood creatinine (eGFR) and urine albumin-to-creatinine ratio: every year.':'Blood creatinine (eGFR) and a urine albumin test with routine blood work, every year if you have diabetes or high blood pressure.'];},
+ signs:'Foamy urine, swelling of feet or around the eyes, tiredness, passing less urine, itching, nausea. Often none until late.',
+ src:['NHS: Kidney disease','https://www.nhs.uk/conditions/kidney-disease/']},
+
+{id:'copd',name:'COPD (chronic lung disease)',cat:CATS[3],known:null,warn:['cough','effort'],
+ about:'Long-term damage to the airways and lungs, mostly from smoking and from indoor or outdoor air pollution, makes breathing harder year after year.',
+ applies:function(p){return p.age>=30;},
+ factors:function(p){var r=[],a=function(n,t){r.push([n,t]);};
+  if(p.smoker)a(5,'Current smoking');else if(p.ex)a(2,'Past smoking');
+  if(p.air)a(2,'Smoky cooking or heavy air pollution');
+  if(p.age>=40)a(1,'Age 40 or older');
+  return r;},
+ first:'If you smoke, set a quit date and ask a doctor for help. Get a breathing test if you cough.',
+ doList:['Quit smoking. It is the most effective step at any age. Ask your doctor about nicotine replacement or medicines.','Cook on LPG, induction or electric, or use a chimney, and ventilate the kitchen.','On high-pollution days, limit outdoor exertion and wear a well-fitted N95 or FFP2 mask.','Ask your doctor about the yearly flu vaccine and the pneumococcal vaccine.'],
+ dontList:['Don’t ignore a cough that lasts more than 3 weeks.','Don’t burn wood, dung, waste or coal in closed rooms.','Don’t smoke around other people.','Don’t write off breathlessness as just getting older.'],
+ screen:function(p){return ['Spirometry (a breathing test) if you smoke or used to, are 40 or older, and have cough, phlegm or breathlessness.'];},
+ signs:'A cough lasting 3 weeks or more, phlegm most mornings, wheezing, breathlessness on stairs.',
+ src:['WHO: COPD','https://www.who.int/news-room/fact-sheets/detail/chronic-obstructive-pulmonary-disease-(copd)']},
+
+{id:'lungca',name:'Lung cancer',cat:CATS[2],known:null,warn:['cough','hoarse','weight'],
+ about:'Most cases are caused by smoking. Found early it is far more treatable, but early disease often causes no symptoms.',
+ applies:function(p){return p.smoker||p.ex||p.air||p.age>=50;},
+ factors:function(p){var r=[],a=function(n,t){r.push([n,t]);};
+  if(p.smoker)a(5,'Current smoking');else if(p.ex)a(2,'Past smoking');
+  if(p.air)a(1,'Smoky cooking or heavy air pollution');
+  if(p.age>=50)a(1,'Age 50 or older');
+  return r;},
+ first:'If you smoke, quit. If you are 50 or older and a heavy smoker, ask about a low-dose CT scan.',
+ doList:['Quit smoking. Benefits begin within weeks and keep growing for years.','Avoid second-hand smoke and, where you can, heavy air pollution.','Use protective equipment if you work with dust, silica or asbestos.','If you are 50 to 80 with a heavy smoking history, ask about yearly low-dose CT screening.'],
+ dontList:['Don’t ignore a cough that changes or lasts 3 weeks or more.','Don’t switch to bidi, hookah or e-cigarettes thinking they are safe.','Don’t self-treat a cough with blood in it.','Don’t skip a chest X-ray when your doctor asks for one.'],
+ screen:function(p){return ['Low-dose CT scan every year if you are 50 to 80, smoke or quit within the last 15 years, and have smoked about a pack a day for 20 years. Ask your doctor about eligibility and availability.'];},
+ signs:'A cough lasting 3 weeks or more, coughing blood, a hoarse voice, unexplained weight loss, chest pain, repeated chest infections.',
+ src:['WHO: Lung cancer','https://www.who.int/news-room/fact-sheets/detail/lung-cancer']},
+
+{id:'oral',name:'Oral (mouth) cancer',cat:CATS[2],known:null,warn:['ulcer'],
+ about:'One of the most common cancers in India. It is linked to chewing tobacco, gutka, paan with tobacco, smoking and alcohol, and is often preceded by visible patches or sores.',
+ applies:function(p){return true;},
+ factors:function(p){var r=[],a=function(n,t){r.push([n,t]);};
+  if(p.chew)a(5,'Chewing tobacco, gutka, khaini or paan with tobacco');
+  if(p.smoker)a(2,'Current smoking');
+  if(p.heavy)a(2,'Heavy drinking');
+  if(p.age>=40)a(1,'Age 40 or older');
+  return r;},
+ first:'Look inside your mouth in a mirror, and book an exam if anything has lasted over 2 weeks.',
+ doList:['Stop all tobacco and areca nut products. Ask a doctor for help quitting.','Check inside your mouth once a month with a mirror and torch: cheeks, tongue, gums, floor and roof.','See a dentist or doctor for a mouth exam every year.','Limit alcohol and eat plenty of fruit and vegetables.'],
+ dontList:['Don’t ignore an ulcer, or a white or red patch, that lasts more than 2 weeks.','Don’t keep tobacco or areca nut in your cheek or gum.','Don’t treat a non-healing sore with mouthwash or home remedies.','Don’t combine tobacco and alcohol. Together they multiply the risk.'],
+ screen:function(p){var use=p&&(p.chew||p.smoker||p.heavy);
+  return [use||!p?'Oral visual examination by a doctor or dentist every year if you use tobacco or drink heavily.':'Mouth exam at routine dental visits.'];},
+ signs:'A mouth ulcer, white or red patch, lump or pain that does not heal in 2 weeks; trouble opening the mouth or swallowing; a numb area.',
+ src:['WHO: Oral health','https://www.who.int/news-room/fact-sheets/detail/oral-health']},
+
+{id:'breast',name:'Breast cancer',cat:CATS[2],known:null,warn:['lump'],
+ about:'The most common cancer in women worldwide. Treatment works best when it is found early.',
+ applies:function(p){return p.sex==='female'&&p.age>=25;},
+ factors:function(p){var r=[],a=function(n,t){r.push([n,t]);};
+  if(p.age>=50)a(2,'Age 50 or older');else if(p.age>=40)a(1,'Age 40 or older');
+  if(p.fam.has('breast'))a(3,'Close relative with breast or ovarian cancer');
+  if(p.obese)a(1,'Weight in the obese range');
+  if(p.heavy)a(1,'Heavy drinking');
+  if(p.low)a(1,'Little physical activity');
+  return r;},
+ first:'Book a clinical breast exam, and a mammogram if you are 40 or older.',
+ doList:['Know how your breasts normally look and feel, and report any change promptly.','Keep a healthy weight, stay active and limit alcohol.','Breastfeed if you can.','Tell your doctor early if close relatives had breast or ovarian cancer.'],
+ dontList:['Don’t ignore a lump because it doesn’t hurt.','Don’t skip a mammogram out of fear when it is due.','Don’t take hormone therapy for menopause without discussing the risks.','Don’t wait to see a doctor after noticing a lump. Go within days.'],
+ screen:function(p){var o=[!p?'Mammogram every 2 years from age 40.':(p.age>=40?'Mammogram every 2 years: due now if you have not had one in the last 2 years.':'Mammogram every 2 years from age 40.')];
+  if(!p||p.fam.has('breast'))o.push('With breast or ovarian cancer in the family, ask your doctor about starting earlier, extra imaging and genetic counselling.');
+  return o;},
+ signs:'A new lump or thickening, nipple discharge or turning inwards, skin dimpling, a change in size or shape, pain in one spot that does not go away.',
+ src:['WHO: Breast cancer','https://www.who.int/news-room/fact-sheets/detail/breast-cancer']},
+
+{id:'cervical',name:'Cervical cancer',cat:CATS[2],known:null,warn:['bleed'],
+ about:'Almost every case comes from long-term infection with the HPV virus. It is largely preventable with vaccination and regular screening.',
+ applies:function(p){return p.sex==='female'&&p.age>=25&&p.age<=65;},
+ factors:function(p){var r=[],a=function(n,t){r.push([n,t]);};
+  a(1,'Age within the screening window of 25 to 65');
+  if(p.cervical==='no')a(4,'No cervical screening test in the last 5 years');
+  if(p.smoker)a(1,'Current smoking');
+  return r;},
+ first:'Book an HPV test or a Pap smear.',
+ doList:['Get screened on schedule: an HPV test every 5 years or a Pap smear every 3 years.','Ask about HPV vaccination if you are in the eligible age range.','Use condoms and avoid tobacco.','Report abnormal bleeding promptly.'],
+ dontList:['Don’t skip screening because you feel well. Early changes cause no symptoms.','Don’t ignore bleeding between periods, after sex or after menopause.','Don’t smoke.','Don’t stop follow-up after an abnormal screening result.'],
+ screen:function(p){var o=['HPV test every 5 years or Pap smear every 3 years, between ages 25 and 65. WHO prioritises ages 30 to 49.'];
+  if(p&&p.cervical==='no')o.push('You said you have not been screened in the last 5 years. Book this now.');
+  return o;},
+ signs:'Bleeding between periods, after sex or after menopause, unusual discharge, pelvic pain.',
+ src:['WHO: Cervical cancer','https://www.who.int/news-room/fact-sheets/detail/cervical-cancer']},
+
+{id:'colorectal',name:'Colorectal (bowel) cancer',cat:CATS[2],known:null,warn:['stool','weight'],
+ about:'It starts as small growths (polyps) in the colon or rectum. Screening can find and remove them before they turn into cancer.',
+ applies:function(p){return p.age>=40||p.fam.has('colon');},
+ factors:function(p){var r=[],a=function(n,t){r.push([n,t]);};
+  if(p.age>=45)a(2,'Age 45 or older');
+  if(p.fam.has('colon'))a(3,'Parent or sibling with bowel cancer');
+  if(p.obese)a(1,'Weight in the obese range');else if(p.central)a(1,'Waist measurement above the risk line');
+  if(p.low)a(1,'Little physical activity');
+  if(p.heavy)a(1,'Heavy drinking');
+  if(p.smoker)a(1,'Current smoking');
+  if(p.diet.has('lowveg'))a(1,'Few fruits and vegetables');
+  return r;},
+ first:'Ask your doctor about a stool blood test (FIT) or a colonoscopy.',
+ doList:['Get screened from age 45, or earlier if a close relative had bowel cancer.','Eat more fibre: vegetables, fruit, whole grains and dal.','Stay active and keep your weight in range.','Limit alcohol and processed meat.'],
+ dontList:['Don’t ignore blood in the stool, black stools, or bowel habits that change for weeks.','Don’t assume bleeding is always piles. Get it checked.','Don’t skip screening because you feel fine.','Don’t smoke.'],
+ screen:function(p){var o=['From age 45 to 75: a stool blood test (FIT) every year, or a colonoscopy every 10 years.'];
+  if(!p||p.fam.has('colon'))o.push('With a close relative affected, ask your doctor to start earlier. A common rule is 10 years before their age at diagnosis.');
+  return o;},
+ signs:'Blood in the stool, black stools, a lasting change in bowel habits, belly pain, unexplained weight loss, or anaemia.',
+ src:['WHO: Colorectal cancer','https://www.who.int/news-room/fact-sheets/detail/colorectal-cancer']},
+
+{id:'tb',name:'Tuberculosis (TB)',cat:CATS[3],known:null,warn:['cough','weight'],
+ about:'An infection that spreads through the air and mostly affects the lungs. It is curable with a full course of treatment, but can be fatal if missed.',
+ applies:function(p){return true;},
+ factors:function(p){var r=[],a=function(n,t){r.push([n,t]);};
+  if(p.tbc)a(5,'Close contact with someone who has TB');
+  if(p.known.has('dm'))a(2,'Diabetes');
+  if(p.under)a(2,'Underweight');
+  if(p.smoker)a(1,'Current smoking');
+  if(p.heavy)a(1,'Heavy drinking');
+  return r;},
+ first:'Ask a doctor about a TB test.',
+ doList:['If you have coughed for 3 weeks or more, get a sputum test and a chest X-ray.','If you ever start TB treatment, finish the entire course.','If you live with someone who has TB, ask about testing and preventive treatment.','Keep rooms ventilated, cover coughs and eat a nutritious diet.'],
+ dontList:['Don’t ignore a cough with fever, night sweats or weight loss.','Don’t stop TB medicine when you start feeling better. It causes drug-resistant TB.','Don’t treat a long-lasting cough with antibiotics on your own.','Don’t hide a TB diagnosis from close contacts who need testing.'],
+ screen:function(p){return ['Chest X-ray and a sputum test (such as a rapid molecular test) if you have symptoms.','If you live with someone who has TB, ask a doctor about testing and TB preventive treatment.'];},
+ signs:'A cough of 2 to 3 weeks or more, fever, night sweats, weight loss, blood in the sputum.',
+ src:['WHO: Tuberculosis','https://www.who.int/news-room/fact-sheets/detail/tuberculosis']},
+
+{id:'dementia',name:'Dementia and Alzheimer’s disease',cat:CATS[4],known:null,warn:['memory'],
+ about:'A gradual decline in memory, thinking and daily skills. Age is the biggest factor, but about 4 in 10 cases are linked to risk factors that can be changed, many of them starting in midlife.',
+ applies:function(p){return p.age>=40||p.warn.has('memory');},
+ factors:function(p){var r=[],k=p.age>=65?1:p.age>=55?0.75:0.5,a=function(n,t){r.push([n*k,t]);};
+  if(p.age>=75)r.push([4,'Age 75 or older']);else if(p.age>=65)r.push([3,'Age 65 or older']);else if(p.age>=60)r.push([1,'Age 60 or older']);
+  if(p.fam.has('dementia'))r.push([2,'Parent or sibling with dementia']);
+  if(p.known.has('htn'))a(1,'High blood pressure');
+  if(p.known.has('chol'))a(1,'High cholesterol');
+  if(p.known.has('dm'))a(1,'Diabetes');
+  if(p.smoker)a(2,'Current smoking');
+  if(p.heavy)a(1,'Heavy drinking');
+  if(p.low)a(1,'Little physical activity');
+  if(p.obese)a(1,'Weight in the obese range');
+  if(p.hear)a(2,'Hearing loss');
+  if(p.vision)a(1,'Vision problems');
+  if(p.head)a(2,'Past head injury');
+  if(p.lonely)a(1,'Little social contact');
+  if(p.air)a(1,'Smoky cooking or heavy air pollution');
+  if(p.shortsleep)a(1,'Sleeping under 6 hours');
+  return r;},
+ first:'Check blood pressure, hearing and vision. If you or your family notice memory changes, book a memory assessment.',
+ doList:['Keep blood pressure, blood sugar and LDL cholesterol in target. They protect the brain as well as the heart.','Stay active: 150 minutes of brisk activity a week, plus balance and strength work.','Get hearing and eyesight checked, and use hearing aids or glasses if advised.','Stay mentally and socially active, and protect your head with a helmet, a seat belt and fall prevention.'],
+ dontList:['Don’t ignore repeated memory lapses or getting lost on familiar routes.','Don’t smoke or drink heavily.','Don’t assume memory loss is just ageing. Low vitamin B12, thyroid problems and depression can cause it and can be treated.','Don’t rely on “brain booster” supplements or online “dementia tests” for a diagnosis.'],
+ screen:function(p){return ['Routine memory screening is not recommended for people with no symptoms, because the evidence is not strong enough. If memory changes appear, ask for a memory and thinking assessment and blood tests for vitamin B12 and thyroid.','Blood pressure every year, and hearing and vision checks every 1 to 2 years from age 60, or sooner if you notice a problem.'];},
+ signs:'Forgetting recent events or repeating questions, trouble planning or handling money, getting lost in familiar places, confusion about time, new trouble finding words, withdrawing from activities, or mood and personality change.',
+ src:['WHO: Dementia','https://www.who.int/news-room/fact-sheets/detail/dementia']},
+
+{id:'sepsis',name:'Sepsis (severe infection)',cat:CATS[3],known:null,warn:[],
+ about:'The body’s reaction to an infection starts to damage its own organs. It can become life-threatening within hours, so the key is to know the warning signs and act fast. This tool cannot detect it.',
+ applies:function(p){return true;},
+ factors:function(p){var r=[],a=function(n,t){r.push([n,t]);};
+  if(p.age>=75)a(3,'Age 75 or older');else if(p.age>=65)a(2,'Age 65 or older');
+  if(p.known.has('dm'))a(2,'Diabetes');
+  if(p.known.has('kidney'))a(2,'Kidney disease');
+  if(p.known.has('liver'))a(1,'Fatty liver');
+  if(p.infect)a(3,'Recent surgery or hospital stay, or a weak immune system');
+  if(p.smoker)a(1,'Current smoking');
+  if(p.heavy)a(1,'Heavy drinking');
+  return r;},
+ first:'Learn the warning signs, and ask your doctor about flu and pneumococcal vaccines.',
+ doList:['Get the vaccines your doctor advises, such as yearly flu and pneumococcal.','See a doctor early for a urine, chest or skin infection that is getting worse.','Clean cuts and wounds, and keep them covered until they heal.','Keep diabetes and kidney conditions under control, and wash your hands often.'],
+ dontList:['Don’t wait if someone with an infection becomes confused, breathless or very drowsy. Go to emergency care.','Don’t take leftover antibiotics or buy antibiotics without a prescription.','Don’t assume a high fever is the only sign. A very low temperature can also be one.','Don’t ignore a wound with spreading redness, pus or red streaks.'],
+ screen:function(p){return ['No screening test exists for sepsis. Prevention is vaccination, treating infections early and good wound care.'];},
+ signs:'Confusion or unusual drowsiness, fast breathing or a racing heart, shivering with a very high or very low temperature, cold, pale or mottled skin, passing very little urine, or feeling you might die. Go to emergency care at once.',
+ src:['WHO: Sepsis','https://www.who.int/news-room/fact-sheets/detail/sepsis']}
+];
+
+var EXAMPLE={age:46,sex:'male',asian:true,height:170,weight:82,waist:96,smoke:'former',alcohol:'some',activity:'low',sleep:'short',
+ other:[],diet:['fried','sugar','salt'],fam:['dm','heart'],known:['chol'],warn:[],cervical:null};
+
+/* ---------- ENGINE ---------- */
+function normalize(r){
+  var p={};for(var k in r)p[k]=r[k];
+  ['other','diet','fam','known','warn'].forEach(function(k){p[k]=new Set(r[k]||[]);});
+  var m=p.height/100;p.bmi=p.weight/(m*m);
+  var ow=p.asian?23:25,ob=p.asian?27.5:30;
+  p.obese=p.bmi>=ob;p.over=p.bmi>=ow&&!p.obese;p.under=p.bmi<18.5;
+  var wl=p.sex==='male'?(p.asian?90:102):(p.asian?80:88);
+  p.central=!!p.waist&&p.waist>=wl;
+  p.smoker=p.smoke==='current';p.ex=p.smoke==='former';
+  p.chew=p.other.has('chew');p.air=p.other.has('air');p.pain=p.other.has('pain');p.tbc=p.other.has('tbc');p.infect=p.other.has('infect');p.hear=p.other.has('hear');p.vision=p.other.has('vision');p.head=p.other.has('head');p.lonely=p.other.has('lonely');
+  p.heavy=p.alcohol==='heavy';p.low=p.activity==='low';p.shortsleep=p.sleep==='short';
+  return p;
+}
+
+function teamCode(p,res,team){
+  function due(id){for(var i=0;i<res.length;i++)if(res[i].c.id===id)return (res[i].lv!=='low'||res[i].hits.length>0)?1:0;return 0;}
+  return [team,due('htn'),due('t2d'),due('chd'),(p.smoker||p.chew)?1:0,p.low?1:0].join(',');
+}
+function teamParams(){
+  try{var q=new URLSearchParams(location.search),t=(q.get('team')||'').replace(/[,\n\r\t]/g,' ').replace(/\s+/g,' ').trim().slice(0,40),f=q.get('form')||'';
+    if(!/^https:\/\/docs\.google\.com\/forms\//.test(f))f='';return t?{team:t,form:f}:null;}catch(e){return null;}
+}
+function teamCard(p,res){
+  var tp=teamParams();if(!tp||p.proxy)return '';
+  var code=teamCode(p,res,tp.team);
+  return '<section class="card" id="team-card" style="margin-top:16px"><h3>Optional: add to your team&rsquo;s totals</h3><p>This adds one anonymous line to the <b>'+esc(tp.team)+'</b> team&rsquo;s totals. It has no name, age or test results, only whether each of five needs applies. Your employer cannot see your answers or your plan. Skip it if you prefer.</p><textarea class="mono-ta" id="team-code" readonly aria-label="Your anonymous team code" style="min-height:48px">'+esc(code)+'</textarea><div class="cta-row"><button class="btn small ghost" type="button" id="team-copy">Copy code</button>'+(tp.form?'<a class="btn small" target="_blank" rel="noopener" href="'+esc(tp.form)+'">Open the team form</a>':'')+'<span class="privacy" id="team-note" aria-live="polite"></span></div><p class="privacy">Order: team, blood pressure, blood sugar, cholesterol, tobacco, low activity. 1 means it applies. Paste the code into the form&rsquo;s one box.</p></section>';
+}
+function bmiDesc(p){return p.under?'below the healthy range':p.obese?'in the obese range':p.over?'above the healthy range':'in the healthy range';}
+function levelOf(n){return n>=5?'high':n>=2?'mod':'low';}
+function evaluate(p){
+  return C.filter(function(c){return c.applies(p);}).map(function(c){
+    var f=c.factors(p),pts=f.reduce(function(s,x){return s+x[0];},0);
+    var managed=!!(c.known&&p.known.has(c.known));
+    var hits=(c.warn||[]).filter(function(w){return p.warn.has(w);});
+    var lv=levelOf(pts);
+    var rank=hits.length?0:managed?2:lv==='high'?1:lv==='mod'?3:4;
+    return {c:c,f:f,pts:pts,managed:managed,hits:hits,lv:lv,rank:rank};
+  }).sort(function(a,b){return a.rank-b.rank||b.pts-a.pts;});
+}
+function warnText(id){for(var i=0;i<WARN.length;i++)if(WARN[i].id===id)return WARN[i].t;return id;}
+function checklist(p,res){
+  var items=['Blood pressure check'];
+  res.forEach(function(r){
+    if(r.hits.length||r.managed||r.lv!=='low')r.c.screen(p).forEach(function(s){if(items.indexOf(s)<0)items.push(s);});
+  });
+  var asks=['What is my 10-year risk of heart attack and stroke?','Which vaccines do I need at my age?','Which two changes would help me most?'];
+  return {tests:items,asks:asks};
+}
+
+/* ---------- AGENT: DATA ---------- */
+var WSHORT={cough:'a long-lasting cough',weight:'weight loss without trying',ulcer:'a mouth sore that is not healing',hoarse:'a hoarse voice',effort:'breathlessness on effort',stool:'blood or changes in your stool',thirst:'extreme thirst or very frequent urination',swell:'swelling in your feet or eyes',yellow:'yellow eyes or dark urine',lump:'a breast lump',bleed:'unusual vaginal bleeding',labsugar:'a high blood sugar result',labbp:'high blood pressure readings',memory:'memory or thinking changes'};
+var FAMLBL={dm:'diabetes',heart:'early heart attack or heart disease',stroke:'stroke',kidney:'kidney disease',breast:'breast or ovarian cancer',colon:'bowel cancer',dementia:'dementia or Alzheimer’s disease'};
+var KNOWNLBL={htn:'high blood pressure',chol:'high cholesterol',dm:'diabetes',predm:'prediabetes',liver:'fatty liver',kidney:'kidney disease',cvd:'heart disease or stroke'};
+var TESTS={t2d:['hba1c','fbs'],htn:['bp','egfr','uacr'],chd:['lipid','hba1c','bp','ecg'],stroke:['bp','lipid','ecg'],fatty:['lft','usg'],ckd:['egfr','uacr'],copd:['spiro'],lungca:['ldct','cxr'],oral:['oral'],breast:['mammo','cbe'],cervical:['hpv'],colorectal:['fit','colo'],tb:['cxr','sputum'],dementia:['cog','bmem','hear','vis'],sepsis:['flu','pneu']};
+var TNAME={hba1c:'HbA1c (3-month average blood sugar)',fbs:'Fasting blood glucose',lipid:'Lipid profile (total, LDL, HDL, triglycerides)',bp:'Blood pressure measurement, repeated on two days',egfr:'Serum creatinine with eGFR (kidney function)',uacr:'Urine albumin-to-creatinine ratio',ecg:'Resting ECG',lft:'Liver function tests (ALT, AST, GGT)',usg:'Liver ultrasound',spiro:'Spirometry (breathing test)',ldct:'Low-dose CT scan of the chest, if you qualify',cxr:'Chest X-ray',sputum:'Sputum test for TB (rapid molecular test)',oral:'Mouth examination by a doctor or dentist',mammo:'Mammogram',cbe:'Clinical breast examination',hpv:'HPV test or Pap smear',fit:'Stool blood test (FIT)',colo:'Colonoscopy referral discussion',cog:'Memory and thinking assessment by a doctor (for example MoCA)',bmem:'Blood tests for treatable causes of memory loss (vitamin B12, thyroid, blood sugar)',hear:'Hearing test (audiometry)',vis:'Eye and vision check',flu:'Flu vaccine (yearly)',pneu:'Pneumococcal vaccine, if your doctor advises it'};
+var TSHORT={hba1c:'HbA1c',fbs:'Fasting glucose',lipid:'Lipid profile',bp:'Blood pressure',egfr:'Kidney function',uacr:'Urine albumin',ecg:'ECG',lft:'Liver function',usg:'Liver ultrasound',spiro:'Spirometry',ldct:'Low-dose CT',cxr:'Chest X-ray',sputum:'Sputum TB test',oral:'Mouth exam',mammo:'Mammogram',cbe:'Breast exam',hpv:'HPV or Pap test',fit:'Stool blood test',colo:'Colonoscopy referral',cog:'Memory assessment',bmem:'B12 and thyroid tests',hear:'Hearing test',vis:'Eye check',flu:'Flu vaccine',pneu:'Pneumococcal vaccine'};
+var TPRICE={hba1c:[90,160],fbs:[30,70],lipid:[100,200],bp:[30,80],egfr:[60,120],uacr:[70,140],ecg:[100,220],lft:[90,170],usg:[250,450],spiro:[150,300],ldct:[600,1100],cxr:[120,250],sputum:[150,300],oral:[100,250],mammo:[350,700],cbe:[150,300],hpv:[300,600],fit:[90,180],colo:[500,900],cog:[200,450],bmem:[150,300],hear:[100,250],vis:[100,250],flu:[60,130],pneu:[250,450]};
+var PROV=[{id:'dha',name:'DHA Health Centers',m:0.6},{id:'mc',name:'Mediclinic',m:1.35},{id:'aster',name:'Aster Clinics',m:1}];
+
+/* ---------- AGENT: TEXT AND LAB PARSER ---------- */
+function hasPos(re,s){
+  var g=new RegExp(re.source,'gi'),m;
+  while((m=g.exec(s))){
+    var pre=s.slice(Math.max(0,m.index-16),m.index);
+    if(!/\b(no|not|without|never|denies|free of|dont have|don't have|do not have)\s+(?:\w+\s+)?$/.test(pre))return true;
+    if(m.index===g.lastIndex)g.lastIndex++;
+  }
+  return false;
+}
+function pickNum(t,list,lo,hi){
+  for(var i=0;i<list.length;i++){
+    var g=new RegExp(list[i].source,'g'),m;
+    while((m=g.exec(t))){var v=parseFloat(m[1]);if(v>=lo&&v<=hi)return v;if(m.index===g.lastIndex)g.lastIndex++;}
+  }
+  return null;
+}
+function addTo(f,k,v){if(f[k].indexOf(v)<0)f[k].push(v);}
+function parseLabs(t){
+  var labs={},v,m;
+  v=pickNum(t,[/(?:hba1c|a1c|glycated h(?:a)?emoglobin|glycosylated h(?:a)?emoglobin)[^\d]{0,15}(\d{1,2}(?:\.\d)?)/],3,15);if(v!=null)labs.hba1c=v;
+  v=pickNum(t,[/(?:fasting (?:blood )?(?:glucose|sugar|plasma glucose)|\bfbs\b|\bfbg\b|\bfpg\b)[^\d]{0,15}(\d{1,3}(?:\.\d)?)/],3,500);
+  if(v!=null)labs.fbg=v<30?Math.round(v*18):v;
+  v=pickNum(t,[/\bldl[^\d]{0,15}(\d{1,3}(?:\.\d)?)/],1,400);if(v!=null)labs.ldl=v<15?Math.round(v*38.67):v;
+  v=pickNum(t,[/(?:total cholesterol|\btc\b|cholesterol total)[^\d]{0,15}(\d{1,3}(?:\.\d)?)/],1,500);if(v!=null)labs.tc=v<15?Math.round(v*38.67):v;
+  m=t.match(/(?:\bbp\b|blood pressure)[^\d]{0,15}(\d{2,3})\s*(?:\/|over)\s*(\d{2,3})/)||t.match(/\b(\d{3})\s*\/\s*(\d{2,3})\s*mm\s?hg/);
+  if(m){var s=+m[1],d=+m[2];if(s>=70&&s<=260&&d>=40&&d<=160){labs.sys=s;labs.dia=d;}}
+  return labs;
+}
+function labFlags(labs,f,got){
+  var lines=[];
+  if(labs.hba1c!=null){lines.push('HbA1c '+labs.hba1c+'%');if(labs.hba1c>=6.5)addTo(f,'warn','labsugar');else if(labs.hba1c>=5.7)addTo(f,'known','predm');}
+  if(labs.fbg!=null){lines.push('Fasting glucose '+labs.fbg+' mg/dL');if(labs.fbg>=126)addTo(f,'warn','labsugar');else if(labs.fbg>=100)addTo(f,'known','predm');}
+  if(labs.ldl!=null){lines.push('LDL cholesterol '+labs.ldl+' mg/dL');if(labs.ldl>=130)addTo(f,'known','chol');}
+  if(labs.tc!=null){lines.push('Total cholesterol '+labs.tc+' mg/dL');if(labs.tc>=240)addTo(f,'known','chol');}
+  if(labs.sys!=null){lines.push('Blood pressure '+labs.sys+'/'+labs.dia+' mmHg');if(labs.sys>=140||labs.dia>=90)addTo(f,'warn','labbp');}
+  lines.forEach(function(l){got.push(l);});
+  return lines;
+}
+function parseText(raw){
+  var t=String(raw||'').toLowerCase().replace(/[\u2018\u2019]/g,"'").replace(/\s+/g,' ');
+  var f={other:[],diet:[],fam:[],known:[],warn:[],em:[]},got=[],m,v;
+  function has(re){return hasPos(re,t);}
+  // age
+  v=pickNum(t,[/\b(?:i am|i'm|im|she is|he is|she's|he's|aged?|age is|age:)\s*(\d{2,3})\b(?!\s*(?:kg|cm|%|mg|\/|ft|feet|lbs?|years? ago))/,/\b(\d{2,3})\s*[- ]?(?:year[- ]?old|yrs? old|years? old|yo|y\/o)\b/,/\b(\d{2,3})\s*(?:years?|yrs?),?\s*(?:male|female|man|woman)\b/],18,100);
+  if(v!=null){f.age=v;got.push('Age '+v);}
+  // sex
+  if(/\b(female|woman|lady|girl)\b/.test(t)){f.sex='female';got.push('Sex female');}
+  else if(/\b(male|man|gentleman|guy|boy)\b/.test(t)){f.sex='male';got.push('Sex male');}
+  if(/\b(south asian|east asian|southeast asian|asian|indian|pakistani|bangladeshi|sri lankan|nepali|nepalese|chinese|filipino|desi)\b/.test(t)){f.asian=true;got.push('Asian cut-offs');}
+  // height
+  v=pickNum(t,[/\b(\d{3})\s*cm\b/],100,250);
+  if(v==null){m=t.match(/\b(\d)\s*(?:ft|feet|foot|')\s*(\d{1,2})?\s*(?:in|inch|inches|")?/);if(m){var cm=Math.round(((+m[1])*12+(m[2]?+m[2]:0))*2.54);if(cm>=100&&cm<=250)v=cm;}}
+  if(v==null){m=t.match(/\b(1\.\d{1,2}|2\.[01]\d?)\s*m(?:eters?|etres?)?\b/);if(m)v=Math.round(parseFloat(m[1])*100);}
+  if(v!=null){f.height=v;got.push('Height '+v+' cm');}
+  // weight
+  v=pickNum(t,[/\b(\d{2,3}(?:\.\d)?)\s*(?:kg|kgs|kilos?|kilograms?)\b/],25,300);
+  if(v==null){var lb=pickNum(t,[/\b(\d{2,3})\s*(?:lbs?|pounds?)\b/],55,660);if(lb!=null)v=Math.round(lb/2.2046);}
+  if(v!=null){f.weight=v;got.push('Weight '+v+' kg');}
+  // waist
+  m=t.match(/waist[^\d]{0,20}(\d{2,3}(?:\.\d)?)\s*(cm|in|inch|inches|")?/);
+  if(m){var w=parseFloat(m[1]);if((m[2]&&/^(in|inch|inches|")$/.test(m[2]))||(!m[2]&&w<50))w=Math.round(w*2.54);if(w>=50&&w<=200){f.waist=w;got.push('Waist '+w+' cm');}}
+  // smoking
+  if(/\b(never smoked|non-?smoker|don't smoke|do not smoke|dont smoke|no smoking)\b/.test(t)){f.smoke='never';got.push('Never smoked');}
+  else if(/\b(quit smoking|ex-?smoker|former smoker|stopped smoking|gave up smoking|used to smoke|quit cigarettes)\b/.test(t)){f.smoke='former';got.push('Quit smoking');}
+  else if(has(/\b(i smoke|smoker|smoking|cigarettes?|bidis?|beedis?|hookah|vape|vaping)\b/)){f.smoke='current';got.push('Smokes');}
+  if(has(/\b(gutka|gutkha|khaini|zarda|pan masala|chew(?:ing)? tobacco|tobacco chewing|paan with tobacco|supari)\b/)){addTo(f,'other','chew');got.push('Chews tobacco');}
+  // alcohol
+  if(/\b(don't drink|do not drink|dont drink|no alcohol|teetotal\w*|never drink|non-?drinker)\b/.test(t)){f.alcohol='none';got.push('No alcohol');}
+  else if(has(/\b(drink daily|daily drinker|drink every day|heavy drink\w*|binge\w*|alcohol daily|drinks? every night|bottle a day)\b/)){f.alcohol='heavy';got.push('Heavy drinking');}
+  else if(/\b(drink|alcohol|beer|wine|whisk(?:e)?y|drinks)\b/.test(t)&&/\b(occasional\w*|social\w*|weekends?|sometimes|few drinks|once a week|rarely)\b/.test(t)){f.alcohol='some';got.push('Some alcohol');}
+  // activity
+  if(has(/\b(sedentary|no exercise|don't exercise|do not exercise|dont exercise|barely exercis\w*|rarely exercis\w*|hardly exercis\w*|desk job|inactive|no physical activity|sit(?:s|ting)? (?:at a desk )?all day)\b/)){f.activity='low';got.push('Little activity');}
+  else if(has(/\b(exercise (?:daily|every day|5 days|regularly)|work(?:s)? out (?:daily|regularly)|workout daily|gym (?:daily|5)|run(?:ning)? (?:daily|regularly)|150 min\w*|very active|active lifestyle)\b/)){f.activity='high';got.push('Active');}
+  else if(/\b(exercise|gym|walk(?:ing)?|run(?:ning)?|workout)\b[^.;]{0,30}\b(twice|2 times|two times|three times|3 times|a few times|sometimes|weekends?|once a week)\b/.test(t)){f.activity='mid';got.push('Some activity');}
+  // sleep
+  v=pickNum(t,[/sleep[^\d.;]{0,25}(\d(?:\.\d)?)\s*(?:h|hr|hrs|hours?)\b/,/\b(\d(?:\.\d)?)\s*(?:h|hr|hrs|hours?)[^.;]{0,10}sleep/],2,12);
+  if(v!=null){f.sleep=v<6?'short':'ok';got.push('Sleeps about '+v+' hours');}
+  // diet
+  if(has(/\b(fried|oily|junk food|fast food|packaged (?:snacks|food)|chips|samosas?|pakoras?|fries|burgers?|takeaway)\b/)){addTo(f,'diet','fried');got.push('Fried food');}
+  if(has(/\b(sugary|soda|cola|soft drinks?|sweets|mithai|sweet tea|energy drinks?|desserts?)\b/)){addTo(f,'diet','sugar');got.push('Sugary food or drinks');}
+  if(has(/\b(extra salt|pickles?|achar|papad|namkeen|salty|high salt|add salt)\b/)){addTo(f,'diet','salt');got.push('High salt');}
+  if(has(/\b(no vegetables|few vegetables|don't eat (?:vegetables|veggies|fruit)|rarely eat (?:vegetables|veggies|fruit)|hate vegetables)\b/)){addTo(f,'diet','lowveg');got.push('Few vegetables');}
+  // other exposures
+  if(has(/\b(ibuprofen|diclofenac|brufen|combiflam|painkillers?|pain killers?|nsaids?|naproxen)\b/)&&!/\b(rarely|occasionally|sometimes|once in a while|only when needed)\b[^.;]{0,30}\b(ibuprofen|diclofenac|brufen|combiflam|painkillers?|pain killers?|nsaids?|naproxen)\b/.test(t)&&!/\b(ibuprofen|diclofenac|brufen|combiflam|painkillers?|pain killers?|nsaids?|naproxen)\b[^.;]{0,30}\b(rarely|occasionally|sometimes|once in a while|only when needed)\b/.test(t)){addTo(f,'other','pain');got.push('Takes painkillers (NSAIDs)');}
+  if(has(/\b(recent surgery|surgery (?:last|in the last) \w+ months?|hospital stay|weak immune|weakened immunity|immunocompromised|chemotherapy)\b/)){addTo(f,'other','infect');got.push('Recent surgery or weak immunity');}
+  if(has(/\b(hearing loss|hard of hearing|trouble hearing|hearing aids?)\b/)){addTo(f,'other','hear');got.push('Hearing loss');}
+  if(has(/\b(poor eyesight|vision problems?|trouble seeing|cataracts?|glaucoma)\b/)){addTo(f,'other','vision');got.push('Vision problems');}
+  if(has(/\b(head injury|concussion|hit my head)\b/)){addTo(f,'other','head');got.push('Past head injury');}
+  if(has(/\b(lonely|socially isolated|little social contact|no one to talk to)\b/)){addTo(f,'other','lonely');got.push('Little social contact');}
+  if(/\b(?:filling (?:this )?in for|answering for|checking for|this is for) (?:my )?(?:father|mother|dad|mom|mum|parent|grandfather|grandmother|relative|husband|wife)\b/.test(t)){f.proxy=true;got.push('Filling in for a relative');}
+  if(has(/\b(wood|firewood|coal|dung|chulha|chulah|biomass|smoky kitchen|pollution|smog|traffic fumes)\b/)){addTo(f,'other','air');got.push('Smoke or pollution exposure');}
+  if(/\b(?:lives? with|living with|contact with|exposed to|colleague has|family member has|roommate has)[^.;]{0,30}\b(?:tb|tuberculosis)\b/.test(t)){addTo(f,'other','tbc');got.push('TB contact');}
+  // family history: segment after a relative word, stopped at the speaker
+  var famRe=/\b(?:dad|father|mother|mom|mum|parents?|brothers?|sisters?|siblings?)\b/g,fm,stripped=t;
+  var famSegs=[];
+  while((fm=famRe.exec(t))){
+    var rest=t.slice(famRe.lastIndex),cut=rest.search(/[.;]|\b(?:i|i'm|i've|me|my)\b/);
+    var seg=cut>=0?rest.slice(0,cut):rest.slice(0,80);
+    famSegs.push(fm[0]+seg);
+    var map=[[/diabet|sugar/,'dm'],[/heart attack|heart disease|cardiac|bypass/,'heart'],[/stroke/,'stroke'],[/kidney/,'kidney'],[/breast cancer|ovarian/,'breast'],[/colon|bowel|colorectal/,'colon'],[/dementia|alzheimer/,'dementia']];
+    map.forEach(function(p){if(p[0].test(seg)&&!/\b(no|not|without)\b[^.;]{0,15}$/.test(seg.slice(0,seg.search(p[0])))){addTo(f,'fam',p[1]);}});
+  }
+  famSegs.forEach(function(s){stripped=stripped.replace(s,' ');});
+  f.fam.forEach(function(x){got.push('Family history: '+FAMLBL[x]);});
+  // own conditions (family segments removed)
+  var s2=stripped;
+  function has2(re){return hasPos(re,s2);}
+  if(has2(/\bdiabet\w*/)&&!has2(/\bpre-?diabet\w*|borderline (?:sugar|diabetes)/)&&!/\b(not diabetic|no diabetes|don't have diabetes)\b/.test(s2)){addTo(f,'known','dm');}
+  if(has2(/\bpre-?diabet\w*|borderline (?:sugar|diabetes)/))addTo(f,'known','predm');
+  if(has2(/\b(high blood pressure|hypertension|high bp|bp tablets?|blood pressure (?:medicine|tablets?|pills?))\b/))addTo(f,'known','htn');
+  if(has2(/\b(high cholesterol|cholesterol is high|statins?)\b/))addTo(f,'known','chol');
+  if(has2(/\bfatty liver\b/))addTo(f,'known','liver');
+  if(has2(/\b(kidney disease|ckd)\b/))addTo(f,'known','kidney');
+  if(has2(/\b(heart disease|had a heart attack|stent|bypass surgery|angioplasty|had a stroke)\b/))addTo(f,'known','cvd');
+  f.known.forEach(function(x){got.push('Already has: '+KNOWNLBL[x]);});
+  // warning signs
+  var wl=[['cough',/cough[^.;]{0,40}(?:3 weeks|three weeks|[4-9] weeks|\d+ months?|weeks|months)|(?:persistent|chronic) cough/],['weight',/unexplained weight loss|unintentional weight loss|(?:losing weight|weight loss)[^.;]{0,25}(?:without trying|for no reason)/],['ulcer',/(?:mouth|oral) (?:ulcer|sore)|white patch|red patch/],['hoarse',/hoarse/],['memory',/(?:forgetting|forgets|forgot|memory (?:loss|problems?|lapses?)|keeps? repeating|repeating (?:the same )?questions|gets? lost|getting lost)[^.;]{0,40}|dementia symptoms|alzheimer/],['stool',/blood in (?:my )?(?:stool|motion)|black stools?|rectal bleeding/],['thirst',/extremely thirsty|extreme thirst|very thirsty|always thirsty|urinat(?:e|ing) (?:a lot|very often|frequently)|frequent urination|blurred vision|blurry vision/],['swell',/swollen (?:ankles|feet|legs|eyes)|swelling (?:in|of) (?:my )?(?:ankles|feet|legs)|foamy urine/],['yellow',/yellow (?:eyes|skin)|jaundice|dark urine/],['effort',/(?:chest (?:tightness|tight)|breathless\w*|short of breath|out of breath)[^.;]{0,30}(?:stairs|walking|effort|exertion|climb|upstairs)/]];
+  wl.forEach(function(w){if(has(w[1])){addTo(f,'warn',w[0]);got.push('Warning sign: '+WSHORT[w[0]]);}});
+  if(f.sex==='female'){
+    if(has(/lump in (?:my )?breast|breast lump/)){addTo(f,'warn','lump');got.push('Warning sign: '+WSHORT.lump);}
+    if(has(/bleeding between periods|bleeding after sex|postmenopausal bleeding|bleeding after menopause/)){addTo(f,'warn','bleed');got.push('Warning sign: '+WSHORT.bleed);}
+    if(/\b(never (?:had|done)|not (?:had|been)|haven't had)\s+(?:a\s+)?(?:pap|hpv|cervical)/.test(t)){f.cervical='no';got.push('No recent cervical screening');}
+    else if(/\b(?:pap smear|pap test|hpv test|cervical screening)\b[^.;]{0,40}\b(?:last (?:year|2 years|3 years)|[1-5] years? ago|done|had|normal)\b/.test(t)){f.cervical='yes';got.push('Cervical screening up to date');}
+  }
+  // emergencies
+  var em=[['chest',/chest (?:pain|pressure)/],['stroke',/face (?:is |was |feels )?(?:droop\w*|numb)|droop\w* (?:face|mouth|eyelid)|slurred speech|weakness on one side|one side (?:weak|numb)|sudden numbness|sudden vision loss/],['breath',/severe (?:difficulty )?breath|can't breathe|cannot breathe|struggling to breathe/],['head',/worst headache|sudden severe headache|thunderclap/],['faint',/fainted|passed out|collapsed|blacked out/],['blood',/coughing (?:up )?blood|vomiting blood|vomited blood/],['sepsis',/\bsepsis\b|\bseptic\b|mottled skin|feel like i (?:might|am going to|will) die|confus\w+[^.;]{0,40}(?:fever|infection)|(?:fever|infection)[^.;]{0,40}confus\w+/]];
+  em.forEach(function(e){if(has(e[1])){addTo(f,'em',e[0]);got.push('Emergency symptom noted');}});
+  // labs
+  var labs=parseLabs(t);
+  return {f:f,labs:labs,got:got};
+}
+
+/* ---------- AGENT: REASONING AND QUESTIONS ---------- */
+function lc(s){return s.charAt(0).toLowerCase()+s.slice(1);}
+function lst(a){return a.length<2?(a[0]||''):a.slice(0,-1).join(', ')+' and '+a[a.length-1];}
+function addW(r,id){if(r.warn.indexOf(id)<0)r.warn.push(id);}
+function yn(id,cond,when,q,warnId){return {id:id,cond:cond,when:when,q:q,opts:[['yes','Yes'],['no','No']],fx:function(r,a){if(a==='yes')addW(r,warnId);}};}
+var QPOOL=[
+ {id:'nsaid',cond:['ckd','htn','chd'],when:function(p){return p.pain;},q:'How often do you take painkillers like ibuprofen or diclofenac?',opts:[['daily','Most days'],['some','A few days a month'],['rare','Rarely']],fx:function(r,a){if(a!=='daily')r.other=r.other.filter(function(x){return x!=='pain';});}},
+ {id:'sugar',cond:['t2d','fatty','chd'],when:function(p){return !p.known.has('dm')&&!p.warn.has('labsugar');},q:'Have you had a blood sugar or HbA1c test in the last 12 months?',opts:[['normal','Yes, it was normal'],['high','Yes, it was high'],['no','No']],fx:function(r,a){if(a==='high')addW(r,'labsugar');}},
+ {id:'bp',cond:['htn','chd','stroke','ckd'],when:function(p){return !p.known.has('htn')&&!p.warn.has('labbp');},q:'Do you know your latest blood pressure reading?',opts:[['low','Below 120/80'],['mid','120 to 139 over 80 to 89'],['high','140/90 or higher'],['never','I have not had it checked']],fx:function(r,a){if(a==='high')addW(r,'labbp');}},
+ yn('thirst',['t2d'],function(p){return !p.warn.has('thirst');},'Lately, have you been unusually thirsty or passing urine very often?','thirst'),
+ {id:'quit',cond:['chd','lungca','copd','stroke','oral'],when:function(p){return p.smoker||p.chew;},q:'With medical help, would you try to quit tobacco in the next month?',opts:[['yes','Yes'],['maybe','Maybe'],['no','Not now']],fx:null},
+ yn('mouth',['oral'],function(p){return p.chew&&!p.warn.has('ulcer');},'Do you have a mouth sore, or a white or red patch, that has not healed in 2 weeks?','ulcer'),
+ yn('stairs',['chd','stroke'],function(p){return (p.obese||p.over||p.central||p.low)&&!p.warn.has('effort');},'Do you get breathless, or feel chest tightness, climbing one flight of stairs?','effort'),
+ yn('yellow',['fatty'],function(p){return (p.heavy||p.obese||p.known.has('liver'))&&!p.warn.has('yellow');},'Have you noticed yellow eyes or skin, or unusually dark urine?','yellow'),
+ yn('cough',['copd','lungca','tb'],function(p){return (p.smoker||p.air||p.tbc)&&!p.warn.has('cough');},'Have you had a cough that lasted 3 weeks or more?','cough'),
+ {id:'pap',cond:['cervical'],when:function(p){return p.sex==='female'&&p.cervical==='no';},q:'When was your last Pap smear or HPV test?',opts:[['never','Never'],['old','More than 5 years ago'],['unsure','Not sure']],fx:null},
+ yn('memory',['dementia'],function(p){return (p.age>=60||p.fam.has('dementia'))&&!p.warn.has('memory');},'In the last year, have you or your family noticed memory or thinking changes, such as repeating questions or getting lost on familiar routes?','memory'),
+ {id:'doctor',cond:[],when:function(){return true;},q:'Do you have a regular doctor or clinic you can show this plan to?',opts:[['yes','Yes'],['no','No']],fx:null},
+ {id:'checkup',cond:[],when:function(){return true;},q:'When did you last have a full health check-up?',opts:[['y1','Within the last year'],['y3','1 to 3 years ago'],['old','More than 3 years ago'],['never','Never']],fx:null}
+];
+var QFX={};QPOOL.forEach(function(q){if(q.fx)QFX[q.id]=q.fx;});
+function pickQuestions(p,res){
+  var out=[],seen={};
+  function take(q,why){if(out.length<2&&!seen[q.id]){seen[q.id]=1;out.push({id:q.id,q:q.q,opts:q.opts,why:why,src:'rules'});}}
+  res.forEach(function(r){
+    if(r.managed||(r.lv==='low'&&!r.hits.length))return;
+    QPOOL.forEach(function(q){if(q.cond.indexOf(r.c.id)>=0&&q.when(p,res))take(q,r.c.name+' is one of your top risks');});
+  });
+  QPOOL.forEach(function(q){if(!q.cond.length&&q.when(p,res))take(q,'To fit the plan to you');});
+  return out;
+}
+function cloneRaw(r){var o={};for(var k in r)o[k]=Array.isArray(r[k])?r[k].slice():r[k];return o;}
+function applyFx(raw,answers){var r=cloneRaw(raw);answers.forEach(function(a){var fx=QFX[a.id];if(fx)fx(r,a.val);});return r;}
+function shortName(r){return r.c.id==='copd'?'COPD':r.c.name.toLowerCase().replace(/\s*\(.*\)/,'');}
+function reason(p,res,labLines){
+  var att=res.filter(function(r){return !r.managed&&(r.hits.length||r.lv!=='low');});
+  var top=att.slice(0,4),cnt={},pts={};
+  top.forEach(function(r){r.f.forEach(function(x){cnt[x[1]]=(cnt[x[1]]||0)+1;pts[x[1]]=Math.max(pts[x[1]]||0,x[0]);});});
+  var shared=Object.keys(cnt).filter(function(k){return cnt[k]>=2&&k.indexOf(':')<0&&!/^Age /.test(k);}).sort(function(a,b){return cnt[b]*pts[b]-cnt[a]*pts[a]||cnt[b]-cnt[a];}).slice(0,3);
+  var names=top.slice(0,3).map(shortName),b1,b2;
+  if(shared.length>=2)b1='Your mix of '+lst(shared.map(lc))+' pushes '+lst(names)+' up at the same time, so I scored them as one pattern, not separate problems.';
+  else if(top.length&&top[0].f.length){var mx=top[0].f.slice().sort(function(a,b){return b[0]-a[0];})[0];b1='Your main driver is '+lc(mx[1])+', which mostly affects '+shortName(top[0])+'.';}
+  else b1='You reported few risk factors. I checked every disease that applies to you and none stood out.';
+  var hit=res.filter(function(r){return r.hits.length;});
+  if(hit.length){
+    var seenW={},ws=[];hit.forEach(function(r){r.hits.forEach(function(h){if(!seenW[h]){seenW[h]=1;ws.push(WSHORT[h]||h);}});});
+    b2='You reported '+lst(ws)+', so I moved '+lst(hit.slice(0,3).map(shortName))+' to the top and marked '+(hit.length>1?'them':'it')+' "see a doctor soon".';
+  }else if(top.length)b2='Nothing in your answers needs urgent care, so I ranked by how many risk factors add up: '+lst(names)+' first.';
+  else b2='Nothing needs attention now, so the plan focuses on staying on schedule with screening.';
+  var nH=res.filter(function(r){return !r.managed&&r.lv==='high';}).length,nM=res.filter(function(r){return !r.managed&&r.lv==='mod';}).length;
+  var trace=[(p.em&&p.em.length)?'Emergency check: symptoms ticked, see the red alert':'Emergency check: none ticked'];
+  if(labLines&&labLines.length)trace.push('Read your lab values: '+labLines.join(', '));
+  trace.push('Scored '+res.length+' diseases that apply to you: '+nH+' Higher, '+nM+' Moderate');
+  var qs=pickQuestions(p,res);
+  trace.push('Picked '+qs.length+' questions the form could not settle');
+  return {bullets:[b1,b2],questions:qs,trace:trace,src:'rules'};
+}
+function profileSummary(p,res){
+  return {age:p.age,sex:p.sex,south_or_east_asian:!!p.asian,bmi:+p.bmi.toFixed(1),weight_category:p.under?'underweight':p.obese?'obese':p.over?'overweight':'healthy',waist_cm:p.waist||null,smoking:p.smoke,chews_tobacco:!!p.chew,alcohol:p.alcohol,activity:p.activity,sleep:p.sleep,diet:Array.from(p.diet),family_history:Array.from(p.fam),known_conditions:Array.from(p.known),regular_painkillers:!!p.pain,warning_signs:Array.from(p.warn),ranked_conditions:res.slice(0,6).map(function(r){return {name:r.c.name,level:r.managed?'already diagnosed':r.lv,warning_signs_reported:r.hits,reasons:r.f.map(function(x){return x[1];}).slice(0,4)};})};
+}
+
+/* ---------- AGENT: CALENDAR, CLINICS, BRIEF ---------- */
+function pad2(n){return n<10?'0'+n:''+n;}
+function icsEsc(s){return String(s).replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\r?\n/g,'\\n');}
+function icsFold(line){var out=[],l=line;while(l.length>73){out.push(l.slice(0,73));l=' '+l.slice(73);}out.push(l);return out.join('\r\n');}
+var WEBHOOK_URL='/api/send-plan';
+var AGENT_URL='/api/agent-think';
+var AIN='Claude';
+function isoLocal(d,h,m){return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate())+'T'+pad2(h)+':'+pad2(m)+':00';}
+function icsDT(d,h,m){return d.getFullYear()+pad2(d.getMonth()+1)+pad2(d.getDate())+'T'+pad2(h)+pad2(m)+'00';}
+function evEnd(e){return new Date(e.date.getFullYear(),e.date.getMonth(),e.date.getDate(),e.h,e.m+e.dur);}
+function buildICS(events,now){
+  var stamp=now.getUTCFullYear()+pad2(now.getUTCMonth()+1)+pad2(now.getUTCDate())+'T'+pad2(now.getUTCHours())+pad2(now.getUTCMinutes())+pad2(now.getUTCSeconds())+'Z';
+  var L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Prevent First//Reminders//EN','CALSCALE:GREGORIAN','METHOD:PUBLISH'];
+  events.forEach(function(e,i){
+    var end=evEnd(e);
+    L.push('BEGIN:VEVENT','UID:pf-'+stamp+'-'+i+'@prevent-first','DTSTAMP:'+stamp,'DTSTART:'+icsDT(e.date,e.h,e.m),'DTEND:'+icsDT(end,end.getHours(),end.getMinutes()),'SUMMARY:'+icsEsc(e.title),'DESCRIPTION:'+icsEsc(e.desc),'BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:'+icsEsc(e.title),'TRIGGER:'+e.alarm,'END:VALARM','END:VEVENT');
+  });
+  L.push('END:VCALENDAR');
+  return L.map(icsFold).join('\r\n')+'\r\n';
+}
+function gcalLink(e){
+  var end=evEnd(e);
+  return 'https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent(e.title)+'&dates='+icsDT(e.date,e.h,e.m)+'/'+icsDT(end,end.getHours(),end.getMinutes())+'&details='+encodeURIComponent(e.desc);
+}
+function ymd(d){return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate());}
+function addDays(d,n){return new Date(d.getFullYear(),d.getMonth(),d.getDate()+n);}
+function parseYMD(s){var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(s||'');if(!m)return null;var d=new Date(+m[1],+m[2]-1,+m[3]);return (isNaN(d)||d.getMonth()!==+m[2]-1)?null:d;}
+function reminderEvents(cid,labDate,bpDate){
+  var keys=TESTS[cid]||[];
+  var fasting=keys.indexOf('fbs')>=0||keys.indexOf('lipid')>=0;
+  var desc=(cid==='sepsis'?'Vaccines to ask about: ':'Tests to ask for: ')+keys.map(function(k){return TNAME[k];}).join('; ')+'.'+(fasting?' Fast for 8 to 10 hours before blood sugar and lipid tests unless your doctor says otherwise.':'')+' Bring your Prevent First doctor brief.';
+  return [
+   {title:(cid==='dementia'?'Memory check-up':cid==='sepsis'?'Vaccines':'Lab tests')+': '+keys.map(function(k){return TSHORT[k];}).join(', '),desc:desc,date:labDate,h:8,m:0,dur:60,alarm:'-P1D'},
+   {title:'Re-check your blood pressure',desc:'Sit quietly for 5 minutes. Take two readings one minute apart on the same arm and write both down. If either is 140/90 or higher, book a doctor visit. If you have chest pain, a severe headache or weakness on one side, call emergency services.',date:bpDate,h:8,m:0,dur:15,alarm:'-PT30M'}
+  ];
+}
+function r5(x){return Math.round(x/5)*5;}
+function clinicTable(keys){
+  var rows=keys.map(function(k){var pr={};PROV.forEach(function(v){pr[v.id]=[r5(TPRICE[k][0]*v.m),r5(TPRICE[k][1]*v.m)];});return {key:k,name:TNAME[k],prices:pr};});
+  var totals={};PROV.forEach(function(v){var lo=0,hi=0;rows.forEach(function(r){lo+=r.prices[v.id][0];hi+=r.prices[v.id][1];});totals[v.id]=[lo,hi];});
+  var best=PROV[0].id;PROV.forEach(function(v){if(totals[v.id][0]<totals[best][0])best=v.id;});
+  return {rows:rows,totals:totals,best:best};
+}
+function bmiLine(p){
+  var cat=p.under?'underweight':p.obese?'obese':p.over?'overweight':'in the healthy range';
+  var std=p.bmi<18.5?'underweight':p.bmi<25?'healthy':p.bmi<30?'overweight':'obese';
+  var s='BMI '+p.bmi.toFixed(1)+' kg/m2: '+cat+(p.asian?' using Asian-adjusted cut-offs (overweight from 23, obese from 27.5)':'')+'.';
+  if(p.asian&&std!==(p.under?'underweight':p.obese?'obese':p.over?'overweight':'healthy'))s+=' On standard WHO cut-offs this would read '+std+'.';
+  return s;
+}
+function briefModel(p,res,focusId,answers,labLines,now){
+  var date=(now||new Date()),S=[],T=[];
+  var focus=null;res.forEach(function(r){if(r.c.id===focusId)focus=r;});
+  var sx=p.sex==='male'?'male':'female';
+  var pl=['Age '+p.age+', '+sx+(p.asian?', Asian background':'')+'.','Prepared on '+date.toDateString()+' for your GP or family doctor.'];
+  if(p.proxy)pl.push('Answers were given by a family member on the patient’s behalf.');
+  S.push({h:'Patient (self-reported)',lines:pl});
+  var body=[bmiLine(p)];
+  var wl=p.sex==='male'?(p.asian?90:102):(p.asian?80:88);
+  if(p.waist)body.push('Waist '+p.waist+' cm: '+(p.central?'above':'within')+' the '+wl+' cm limit for '+(p.asian?'Asian ':'')+(p.sex==='male'?'men':'women')+'.');
+  S.push({h:'Body measurements',lines:body});
+  var flags=[];
+  (p.em||[]).forEach(function(id){EMERG.forEach(function(e){if(e[0]===id)flags.push('EMERGENCY SYMPTOM REPORTED: '+e[1]);});});
+  WARN.forEach(function(w){if(p.warn.has(w.id))flags.push(w.t);});
+  (labLines||[]).forEach(function(l){flags.push('Reported lab value: '+l);});
+  S.push({h:'Red flags',lines:flags.length?flags:['None reported.']});
+  var med=[];
+  if(p.pain)med.push('Regular painkillers (NSAIDs such as ibuprofen or diclofenac): can raise blood pressure and strain the kidneys, more so with diabetes or high blood pressure. Please review whether to check kidney function. The patient has not been told to stop any prescribed medicine.');
+  if(p.smoker)med.push('Current smoker.');else if(p.ex)med.push('Ex-smoker.');
+  if(p.chew)med.push('Uses chewed tobacco or areca nut products: ask for a mouth examination.');
+  if(p.heavy)med.push('Heavy alcohol use.');
+  if(p.air)med.push('Exposure to cooking smoke or heavy air pollution.');
+  if(p.tbc)med.push('Close contact with a person who has TB.');
+  if(p.shortsleep)med.push('Sleeps under 6 hours on most nights.');
+  S.push({h:'Medication and exposure risks',lines:med.length?med:['None reported.']});
+  var hist=[];
+  Array.from(p.known).forEach(function(k){hist.push('Reported by the patient or from a lab value: '+KNOWNLBL[k]+'.');});
+  Array.from(p.fam).forEach(function(k){hist.push('Family history: '+FAMLBL[k]+'.');});
+  S.push({h:'Known conditions and family history',lines:hist.length?hist:['None reported.']});
+  var rk=res.filter(function(r){return !r.managed&&(r.hits.length||r.lv!=='low');}).slice(0,6).map(function(r){return r.c.name+': '+(r.hits.length?'see a doctor soon, ':'')+LV[r.lv].toLowerCase()+' ('+r.f.slice().sort(function(a,b){return b[0]-a[0];}).slice(0,3).map(function(x){return lc(x[1]);}).join('; ')+')';});
+  S.push({h:'Risk summary from the prevention check',lines:rk.length?rk:['No condition stood out.']});
+  var fk=focus?(TESTS[focus.c.id]||[]):[];
+  if(fk.length)S.push({h:(focus.c.id==='sepsis'?'Vaccines to ask about for ':focus.c.id==='dementia'?'Assessments and tests to request for ':'Tests to request for ')+shortName(focus),lines:fk.map(function(k){return TNAME[k];})});
+  var other=[],seen={};fk.forEach(function(k){seen[k]=1;});
+  res.forEach(function(r){if(r===focus||r.managed||r.lv!=='high')return;(TESTS[r.c.id]||[]).forEach(function(k){if(!seen[k]){seen[k]=1;other.push(TNAME[k]+' ('+shortName(r)+')');}});});
+  if(other.length)S.push({h:'Other tests worth asking about',lines:other});
+  if(answers&&answers.length)S.push({h:'Follow-up answers given to the prevention agent',lines:answers.map(function(a){return a.q+' '+a.label;})});
+  S.push({h:'Questions for the doctor',lines:['What is my 10-year risk of heart attack and stroke?','Which of these tests should I have first, and how often should I repeat them?','Should my regular medicines or painkillers change?']});
+  S.push({h:'Limits of this document',lines:['Self-reported answers from a prevention tool. Not a diagnosis. Created after the patient approved this summary.']});
+  T.push('DOCTOR HANDOVER BRIEF'+(focus?' - focus: '+focus.c.name:''));
+  S.forEach(function(s){T.push('');T.push(s.h.toUpperCase());s.lines.forEach(function(l){T.push('- '+l);});});
+  return {title:'Doctor handover brief',sections:S,text:T.join('\n')+'\n'};
+}
+
+function quickfillHTML(){
+  return '<div class="qf" id="qf"><div class="qf-h"><span class="pill pill-info">AI Agent</span><h3>Quick-Fill</h3></div>'+
+  '<p class="hint">Write a sentence about yourself, or add a lab report. The agent fills the form below. You can change anything it fills.</p>'+
+  '<label for="qf-text" class="vh">Describe yourself in a sentence</label>'+
+  '<textarea class="qf-text" id="qf-text" rows="3" placeholder="I am 46, South Asian male, 175cm, 87kg, my dad had diabetes, and I take ibuprofen daily"></textarea>'+
+  '<div class="qf-row"><input type="file" id="qf-file" class="vh qf-file" accept="image/*,.pdf,.txt,.csv"><label for="qf-file" class="btn small ghost">Add a lab report (image, PDF or text)</label><span class="privacy" id="qf-fname"></span><button type="button" class="btn small ghost" id="qf-dummy">Insert a dummy lab report</button></div>'+
+  '<p class="privacy">Text and .txt files are read on this page. An image is sent to Claude to read, and only after you press the button below.</p>'+
+  '<div class="cta-row"><button type="button" class="btn" id="qf-go">Let Agent Auto-Fill Profile</button></div>'+
+  '<div class="qf-out" id="qf-out" aria-live="polite"></div></div>';
+}
+
+/* ---------- RENDER ---------- */
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function li(a){return a.map(function(x){return '<li>'+esc(x)+'</li>';}).join('');}
+function cardHTML(r,p,open){
+  var c=r.c,personal=!!p;
+  var pills='',sub='';
+  if(personal){
+    if(r.hits.length)pills+='<span class="pill pill-warn">See a doctor soon</span>';
+    if(r.managed)pills+='<span class="pill pill-info">Already diagnosed</span>';
+    else pills+='<span class="pill pill-'+r.lv+'">'+LV[r.lv]+'</span>';
+    if(r.hits.length)sub='You reported: '+r.hits.map(warnText).join('; ');
+    else if(r.managed)sub='You told us you have this. Your doctor’s plan comes first.';
+    else if(r.f.length)sub=r.f.slice().sort(function(a,b){return b[0]-a[0];}).slice(0,2).map(function(x){return x[1];}).join(' · ');
+    else sub='No major risk factors reported';
+  }else{sub=c.cat;}
+  var body='<p>'+esc(c.about)+'</p>';
+  if(personal&&r.hits.length)body+='<p class="flag">Warning signs you reported need a doctor’s visit in the next few days, not a wait-and-see. They are often not serious, but only a test can tell.</p>';
+  if(personal&&r.f.length&&!r.managed)body+='<div class="why"><h4>Why this level</h4><ul>'+r.f.map(function(x){return '<li>'+esc(x[1])+'</li>';}).join('')+'</ul></div>';
+  body+='<div class="dd"><div class="do"><h4>Do</h4><ul>'+li(c.doList)+'</ul></div><div class="dont"><h4>Don’t</h4><ul>'+li(c.dontList)+'</ul></div></div>';
+  body+='<div class="scr"><h4>Screening and tests</h4><ul>'+li(c.screen(p||null))+'</ul></div>';
+  body+='<div><h4>Warning signs: see a doctor soon</h4><p>'+esc(c.signs)+'</p></div>';
+  body+='<p class="src">Source: <a href="'+c.src[1]+'" target="_blank" rel="noopener">'+esc(c.src[0])+'</a></p>';
+  if(personal&&r.lv==='high'&&!r.managed)body+=actionsHTML(c.id);
+  return '<details class="card"'+(open?' open':'')+'><summary><span class="t">'+esc(c.name)+'</span><span class="pillbox">'+pills+'</span><span class="s">'+esc(sub)+'</span></summary><div class="body">'+body+'</div></details>';
+}
+function actionsHTML(cid){
+  var b=function(act,t){return '<button class="btn small ghost" type="button" data-act="'+act+'" data-cid="'+cid+'">'+t+'</button>';};
+  return '<div class="aa"><div class="aa-h"><span class="pill pill-info">Agent</span><h4>Agent Actions (Requires Your Approval)</h4></div><p class="hint">The agent prepares each item. Nothing is created or sent until you approve it.</p><div class="aa-btns">'+b('brief','Generate Doctor Handover Brief')+b('clinics','Find Nearby UAE Screening Clinics')+b('remind','Approve &amp; Auto-Schedule Reminders')+'</div></div>';
+}
+function alertHTML(){
+  return '<strong>This could be an emergency. Get help now.</strong><p>Call your local emergency number. Don’t drive yourself, and don’t wait to see if it passes.</p><p class="nums">112 India and EU · 911 US and Canada · 999 UK · 108 ambulance in India</p>';
+}
+function everyoneHTML(p){
+  var wl=p.sex==='male'?(p.asian?'90':'102'):(p.asian?'80':'88');
+  var healthy=p.asian?'18.5 to 22.9':'18.5 to 24.9';
+  var nums=[
+   ['Blood pressure','Aim below 120/80 mmHg. 140/90 or higher on repeat readings is high.'],
+   ['Fasting blood sugar','Below 100 mg/dL (5.6 mmol/L) is normal. 100 to 125 is prediabetes. 126 or more on two tests suggests diabetes.'],
+   ['HbA1c','Below 5.7% is normal. 5.7 to 6.4% is prediabetes. 6.5% or more suggests diabetes.'],
+   ['Body mass index','Healthy range '+healthy+' for you.'],
+   ['Waist','Under '+wl+' cm for you.'],
+   ['Salt','Under 5 g a day, about one teaspoon in total.']
+  ];
+  var habits=['Use no tobacco in any form, and keep alcohol low.','Move for 150 minutes a week at a brisk pace.','Eat five servings of fruit and vegetables a day (about 400 g).','Sleep 7 to 8 hours on a regular schedule.','Ask your doctor which vaccines you need: yearly flu, tetanus every 10 years, hepatitis B, HPV if eligible.','Get a full health check every year after 40, or sooner with risk factors.'];
+  return '<section class="sec"><div class="sec-h"><h2>For everyone</h2></div><ul class="habits">'+li(habits)+'</ul></section>'+
+   '<section class="sec"><div class="sec-h"><h2>Numbers to know</h2></div><div class="nums">'+nums.map(function(n){return '<div class="num"><span class="k">'+n[0]+'</span><span class="v">'+esc(n[1])+'</span></div>';}).join('')+'</div></section>';
+}
+function resultsHTML(p,res,isExample,answers){
+  var sex=p.sex==='male'?'male':'female';
+  var start=res.filter(function(r){return r.hits.length||(!r.managed&&r.lv!=='low');}).slice(0,3);
+  var h='';
+  if(isExample)h+='<div class="banner"><span>This is an example person, not you.</span><button class="btn small ghost" type="button" id="own-btn">Enter my own answers</button></div>';
+  h+='<div class="rhead col"><p class="eyebrow">'+(p.proxy?'Prevention plan for your relative':'Your prevention plan')+'</p><h2 id="r-h" tabindex="-1">Here is where to start</h2><p class="meta mono" style="font-size:.9rem">'+p.age+' years · '+sex+' · BMI '+p.bmi.toFixed(1)+' ('+bmiDesc(p)+')</p></div>';
+  if(p.em.length)h+='<div class="alert col" role="alert" style="margin-top:12px">'+alertHTML()+'</div>';
+  h+='<div class="col"><section class="sec start"><ol>';
+  if(start.length){
+    h+=start.map(function(r){return '<li><span class="nm">'+esc(r.c.name)+'</span><span class="act">'+esc(r.c.first)+'</span></li>';}).join('');
+  }else h+='<li><span class="nm">No major risk factors reported</span><span class="act">Keep the everyday habits below going and stay on schedule with screening tests.</span></li>';
+  h+='</ol></section>';
+  h+='<p class="legend" style="margin-top:14px">Levels count the risk factors you reported. They are not a diagnosis or a percentage chance. Showing '+res.length+' of '+C.length+' conditions that apply to you; the rest are in the Condition library. Cards marked Higher include agent actions that need your approval.</p>';
+  if(answers&&answers.length)h+='<section class="sec"><div class="sec-h"><h3>What you told the agent</h3></div><ul class="habits" style="grid-template-columns:minmax(0,1fr)">'+answers.map(function(a){return '<li><b>'+esc(a.q)+'</b> '+esc(a.label)+'</li>';}).join('')+'</ul></section>';
+  var oc=0;h+='<div class="cards">'+res.map(function(r,i){var o=i===0;if(r.lv==='high'&&!r.managed&&oc<2){o=true;oc++;}return cardHTML(r,p,o);}).join('')+'</div>';
+  h+=everyoneHTML(p);
+  var cl=checklist(p,res);
+  h+='<section class="sec check"><div class="sec-h"><h2>Take this to your doctor</h2><p class="hint">Tests worth asking about, based on your answers, and three questions.</p></div><div><h4 class="eyebrow" style="margin-bottom:8px">Tests to ask about</h4><ul>'+li(cl.tests)+'</ul></div><div><h4 class="eyebrow" style="margin-bottom:8px">Questions to ask</h4><ul>'+li(cl.asks)+'</ul></div><div class="cta-row"><button class="btn small" type="button" id="copy-btn">Copy this checklist</button><span class="privacy" id="copy-note" aria-live="polite"></span></div><textarea class="copy" id="copy-ta" hidden readonly aria-label="Checklist text to copy"></textarea></section>';
+  h+='<div class="cta-row" style="margin-top:20px"><button class="btn ghost" type="button" id="edit-btn">Edit my answers</button></div></div>';
+  return {html:h,checklist:cl};
+}
+
+/* ---------- FORM ---------- */
+function opt(type,name,value,label){return '<label class="opt"><input type="'+type+'" name="'+name+'" value="'+value+'" id="'+name+'-'+value+'"><span>'+label+'</span></label>';}
+function grp(type,name,items){return '<div class="opts">'+items.map(function(i){return opt(type,name,i[0],i[1]);}).join('')+'</div>';}
+function fieldset(legend,inner,errId){return '<fieldset><legend>'+legend+'</legend>'+inner+(errId?'<p class="err" id="err-'+errId+'" role="alert"></p>':'')+'</fieldset>';}
+
+function formHTML(){
+  var h='';
+  h+='<section class="sec" id="sec-about"><div class="sec-h"><h2>About you</h2></div>'+quickfillHTML()+
+   '<div class="fields"><div class="field"><label for="age">Age <span class="unit">years</span></label><input type="number" id="age" inputmode="numeric" min="18" max="100" placeholder="e.g. 42"><p class="err" id="err-age" role="alert"></p></div></div>'+
+   fieldset('Sex at birth <span class="unit" style="font-weight:400;color:var(--muted)">(screening advice differs)</span>',grp('radio','sex',[['female','Female'],['male','Male']]),'sex')+
+   '<fieldset><legend class="sr" style="position:absolute;left:-9999px">Background</legend>'+grp('checkbox','asian',[['yes','I am of South Asian, East Asian or Southeast Asian background']])+grp('checkbox','proxy',[['yes','I am filling this in for a parent or relative']])+'<p class="hint">This changes the weight and waist cut-offs. Asian adults develop diabetes and heart disease at lower weights.</p></fieldset></section>';
+  h+='<section class="sec"><div class="sec-h"><h2>Your body</h2></div><div class="fields">'+
+   '<div class="field"><label for="height">Height <span class="unit">cm</span></label><input type="number" id="height" inputmode="decimal" min="100" max="250" placeholder="e.g. 170"></div>'+
+   '<div class="field"><label for="weight">Weight <span class="unit">kg</span></label><input type="number" id="weight" inputmode="decimal" min="25" max="300" placeholder="e.g. 72"></div>'+
+   '<div class="field"><label for="waist">Waist <span class="unit">cm, optional</span></label><input type="number" id="waist" inputmode="decimal" min="40" max="200" placeholder="at the navel"></div></div>'+
+   '<p class="err" id="err-body" role="alert"></p><p class="readout" id="bmi-out" aria-live="polite"></p></section>';
+  h+='<section class="sec"><div class="sec-h"><h2>Daily habits</h2></div>'+
+   fieldset('Smoking',grp('radio','smoke',[['never','Never smoked'],['former','Quit'],['current','Smoke now']]),'smoke')+
+   fieldset('Alcohol',grp('radio','alcohol',[['none','None or rare'],['some','A few drinks a week'],['heavy','Daily, or often 5 or more in one sitting']]),'alcohol')+
+   fieldset('Brisk activity in a week <span class="unit" style="font-weight:400;color:var(--muted)">walking fast, cycling, sport</span>',grp('radio','activity',[['low','Under 75 minutes'],['mid','75 to 149 minutes'],['high','150 minutes or more']]),'activity')+
+   fieldset('Sleep on most nights',grp('radio','sleep',[['short','Under 6 hours'],['ok','6 hours or more']]),null)+
+   fieldset('Food and drink: tick what is true for you',grp('checkbox','diet',[['fried','Fried or packaged snacks most days'],['sugar','Sugary drinks or sweets most days'],['salt','Extra salt, pickles, papad or namkeen daily'],['lowveg','Fewer than 5 servings of fruit and veg a day']]),null)+
+   fieldset('Anything else that applies',grp('checkbox','other',[['chew','I chew tobacco, gutka, khaini or paan with tobacco'],['air','I cook with wood, coal or dung, or live in heavy smoke or pollution'],['pain','I take painkillers like diclofenac or ibuprofen most days'],['tbc','I live or work closely with someone who has TB'],['infect','I had surgery or a hospital stay in the last 3 months, or I have a weak immune system'],['hear','I have hearing loss'],['vision','I have trouble seeing, even with glasses'],['head','I have had a head injury with a knock-out or concussion'],['lonely','I spend most days with very little social contact']]),null)+'</section>';
+  h+='<section class="sec"><div class="sec-h"><h2>Family and health history</h2></div>'+
+   fieldset('Parent, brother or sister with:',grp('checkbox','fam',[['dm','Diabetes'],['heart','Heart attack before 55 (men) or 65 (women)'],['stroke','Stroke'],['kidney','Kidney disease'],['breast','Breast or ovarian cancer'],['colon','Bowel (colon or rectal) cancer'],['dementia','Dementia or Alzheimer’s disease']]),null)+
+   fieldset('Already told by a doctor that you have:',grp('checkbox','known',[['htn','High blood pressure'],['chol','High cholesterol'],['dm','Diabetes'],['predm','Borderline sugar (prediabetes)'],['liver','Fatty liver'],['kidney','Kidney disease'],['cvd','Heart disease or a stroke']]),null)+
+   '<div id="female-block" hidden>'+fieldset('Have you had a cervical screening test (HPV test or Pap smear) in the last 5 years?',grp('radio','cervical',[['yes','Yes'],['no','No or not sure']]),null)+'</div></section>';
+  h+='<section class="sec"><div class="sec-h"><h2>Warning signs in the last few weeks</h2><p class="hint">Not emergencies, but worth a doctor’s visit. Tick any that apply.</p></div><fieldset><legend class="sr" style="position:absolute;left:-9999px">Warning signs</legend><div class="opts">'+
+   WARN.map(function(w){return '<label class="opt'+(w.f?' f-only':'')+'"'+(w.f?' hidden':'')+'><input type="checkbox" name="warn" value="'+w.id+'" id="warn-'+w.id+'"><span>'+w.t+'</span></label>';}).join('')+'</div></fieldset></section>';
+  h+='<div class="cta-row" style="margin-top:20px"><button class="btn" type="submit" id="submit-btn">See my prevention plan</button><span class="privacy">Adults 18 and over.</span></div>';
+  return h;
+}
+
+/* ---------- BOOT ---------- */
+function boot(){
+  var $=function(s,r){return (r||document).querySelector(s);};
+  var $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s));};
+  var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function scrollTo(el){el.scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});}
+
+  var form=$('#profile');form.innerHTML=formHTML();
+  $('#em-set').insertAdjacentHTML('beforeend',EMERG.map(function(e){return opt('checkbox','em',e[0],e[1]);}).join(''));
+
+  function val(n){var el=form.querySelector('input[name="'+n+'"]:checked');return el?el.value:null;}
+  function vals(n,root){return $$('input[name="'+n+'"]:checked',root||document).map(function(e){return e.value;});}
+  function num(id){var v=parseFloat($('#'+id).value);return isNaN(v)?NaN:v;}
+
+  function readRaw(){
+    return {age:num('age'),sex:val('sex'),asian:vals('asian',form).length>0,proxy:vals('proxy',form).length>0,height:num('height'),weight:num('weight'),waist:num('waist'),
+      smoke:val('smoke'),alcohol:val('alcohol'),activity:val('activity'),sleep:val('sleep'),
+      other:vals('other',form),diet:vals('diet',form),fam:vals('fam',form),known:vals('known',form),warn:vals('warn',form),
+      cervical:val('cervical'),em:vals('em')};
+  }
+  function updateBmi(){
+    var h=num('height'),w=num('weight');var out=$('#bmi-out');
+    if(!(h>=100&&h<=250&&w>=25&&w<=300)){out.textContent='';return;}
+    var p=normalize({height:h,weight:w,asian:vals('asian',form).length>0,sex:val('sex')||'male',other:[],diet:[],fam:[],known:[],warn:[]});
+    out.innerHTML='Body mass index <b>'+p.bmi.toFixed(1)+'</b>, '+bmiDesc(p)+'.';
+  }
+  function updateSex(){
+    var f=val('sex')==='female';
+    $('#female-block').hidden=!f;
+    $$('.f-only',form).forEach(function(l){l.hidden=!f;if(!f){var i=$('input',l);if(i)i.checked=false;}});
+    if(!f)$$('input[name="cervical"]',form).forEach(function(i){i.checked=false;});
+  }
+  function updateAlert(){
+    var on=vals('em').length>0;var a=$('#alert');
+    a.hidden=!on;if(on)a.innerHTML=alertHTML();
+  }
+  form.addEventListener('input',function(e){if(e.target.id==='height'||e.target.id==='weight')updateBmi();});
+  form.addEventListener('change',function(e){
+    var n=e.target.name;
+    if(n==='sex')updateSex();
+    if(n==='asian')updateBmi();
+  });
+  $('#em-set').addEventListener('change',updateAlert);
+
+  function setErr(id,msg){var el=$('#err-'+id);if(el)el.textContent=msg||'';}
+  function validate(){
+    ['age','sex','body','smoke','alcohol','activity'].forEach(function(k){setErr(k,'');});
+    var r=readRaw(),first=null;
+    function bad(id,msg,focusSel){setErr(id,msg);if(!first)first=focusSel;}
+    if(isNaN(r.age))bad('age','Enter your age.','#age');
+    else if(r.age<18)bad('age','This tool is for adults 18 and over. For a child’s health, ask a paediatrician.','#age');
+    else if(r.age>100)bad('age','Enter an age of 100 or less.','#age');
+    if(!r.sex)bad('sex','Choose one.','input[name="sex"]');
+    if(!(r.height>=100&&r.height<=250))bad('body','Enter your height in cm (100 to 250).','#height');
+    else if(!(r.weight>=25&&r.weight<=300))bad('body','Enter your weight in kg (25 to 300).','#weight');
+    if(!r.smoke)bad('smoke','Choose one.','input[name="smoke"]');
+    if(!r.alcohol)bad('alcohol','Choose one.','input[name="alcohol"]');
+    if(!r.activity)bad('activity','Choose one.','input[name="activity"]');
+    if(first){var t=$(first,form);if(t){t.focus();scrollTo(t.closest('.sec')||t);}return null;}
+    return r;
+  }
+
+  var intro=$('#intro'),results=$('#results'),isExample=false;
+  function show(r,example,answers){
+    isExample=!!example;
+    var p=normalize(r);var res=evaluate(p);var out=resultsHTML(p,res,isExample,answers);
+    S.p=p;S.res=res;S.answers=answers||[];S.raw=r;
+    results.innerHTML=out.html+(isExample?'':teamCard(p,res));intro.hidden=true;agentEl.hidden=true;results.hidden=false;
+    var cl=out.checklist;
+    var copyBtn=$('#copy-btn'),note=$('#copy-note'),ta=$('#copy-ta');
+    var text='Prevention checklist\n'+p.age+' years, '+p.sex+', BMI '+p.bmi.toFixed(1)+'\n\nTests to ask about:\n'+cl.tests.map(function(t){return '- '+t;}).join('\n')+'\n\nQuestions to ask:\n'+cl.asks.map(function(t){return '- '+t;}).join('\n')+'\n\nGeneral information only. Not a diagnosis.';
+    copyBtn.addEventListener('click',function(){
+      var done=function(){note.textContent='Copied.';};
+      var fallback=function(){ta.hidden=false;ta.value=text;ta.focus();ta.select();note.textContent='Select and copy the text below.';};
+      try{navigator.clipboard.writeText(text).then(done,fallback);}catch(e){fallback();}
+    });
+    var tcp=$('#team-copy');if(tcp)tcp.addEventListener('click',function(){copyText($('#team-code').value,$('#team-note'),$('#team-card'));});
+    $('#edit-btn').addEventListener('click',back);
+    var ob=$('#own-btn');if(ob)ob.addEventListener('click',function(){form.reset();$('#alert').hidden=true;updateSex();updateBmi();back();});
+    var h=$('#r-h');h.focus({preventScroll:true});scrollTo(results);
+  }
+  function back(){results.hidden=true;agentEl.hidden=true;intro.hidden=false;scrollTo(form);}
+  form.addEventListener('submit',function(e){e.preventDefault();var r=validate();if(r)startAgent(r);});
+
+  function setVal(id,v){var el=$('#'+id);if(el)el.value=(v==null||isNaN(v))?'':v;}
+  function fillExample(){
+    form.reset();
+    var x=EXAMPLE;
+    setVal('age',x.age);setVal('height',x.height);setVal('weight',x.weight);setVal('waist',x.waist);
+    function check(name,v){var el=$('#'+name+'-'+v,form);if(el)el.checked=true;}
+    check('sex',x.sex);if(x.asian)check('asian','yes');
+    check('smoke',x.smoke);check('alcohol',x.alcohol);check('activity',x.activity);check('sleep',x.sleep);
+    x.other.forEach(function(v){check('other',v);});x.diet.forEach(function(v){check('diet',v);});
+    x.fam.forEach(function(v){check('fam',v);});x.known.forEach(function(v){check('known',v);});
+    updateSex();updateBmi();
+  }
+  $('#example-btn').addEventListener('click',function(){fillExample();show(readRaw(),true);});
+
+  /* preview in hero */
+  (function(){
+    var p=normalize(EXAMPLE),res=evaluate(p).filter(function(r){return !r.managed&&r.lv!=='low';}).slice(0,3);
+    $('#pv-who').textContent=p.age+' · male · BMI '+p.bmi.toFixed(1);
+    $('#pv-rows').innerHTML=res.map(function(r){
+      return '<div class="row"><div class="head"><span class="nm">'+esc(r.c.name)+'</span><span class="pill pill-'+r.lv+'">'+LV[r.lv]+'</span></div><span class="act">'+esc(r.c.first)+'</span></div>';
+    }).join('');
+  })();
+
+  /* tabs */
+  function setTab(which){
+    var chk=which==='check';
+    $('#view-check').hidden=!chk;$('#view-lib').hidden=chk;
+    $('#tab-check').setAttribute('aria-selected',chk?'true':'false');
+    $('#tab-lib').setAttribute('aria-selected',chk?'false':'true');
+    window.scrollTo(0,0);
+  }
+  $('#tab-check').addEventListener('click',function(){setTab('check');});
+  $('#tab-lib').addEventListener('click',function(){setTab('lib');});
+
+  /* library */
+  var cat='All';
+  function renderLib(){
+    $('#chips').innerHTML=['All'].concat(CATS).map(function(c){return '<button class="chip" type="button" aria-pressed="'+(c===cat)+'" data-c="'+esc(c)+'">'+esc(c)+'</button>';}).join('');
+    $('#lib-cards').innerHTML=C.filter(function(c){return cat==='All'||c.cat===cat;}).map(function(c){return cardHTML({c:c},null,false);}).join('');
+  }
+  $('#chips').addEventListener('click',function(e){var b=e.target.closest('.chip');if(!b)return;cat=b.getAttribute('data-c');renderLib();var nb=$('.chip[aria-pressed="true"]');if(nb)nb.focus();});
+  renderLib();
+
+  /* ===== AGENT LAYER ===== */
+  var agentEl=$('#agent'),modal=$('#modal'),mBody=$('#modal-body'),mTitle=$('#modal-title'),mOpener=null,lookupTimer=null;
+  var LABLINES=[],SAMPLE=null,SAVE=null,qfFile=null,S={raw:null,p:null,res:null,answers:[],R:null};
+  var DUMMY_LAB='LABORATORY REPORT (SAMPLE, NOT A REAL PATIENT)\nAge 46, Male\nHbA1c: 6.1 %\nFasting blood glucose: 108 mg/dL\nTotal cholesterol: 218 mg/dL\nLDL cholesterol: 148 mg/dL\nBlood pressure: 146/92 mmHg';
+  var DEMO_TEXT='I am 46, South Asian male, 175cm, 87kg, waist 98 cm. My dad had diabetes and my mother had a stroke. I take ibuprofen daily for back pain, I smoke about 10 cigarettes a day, I drink occasionally, I sit at a desk all day and barely exercise, and I sleep about 5 hours. I eat fried snacks and sugary tea every day. My last check-up showed HbA1c 6.1, LDL 148, BP 146/92. I have been very thirsty lately.';
+  if(window.claude&&typeof window.claude.use==='function'){
+    try{
+      window.claude.use('sample').then(function(s){if(s){SAMPLE=s;AIN='Claude';}var b=$('#a-claude');if(b)b.hidden=!SAMPLE;}).catch(function(){});
+      window.claude.use('downloads').then(function(d){SAVE=d||null;}).catch(function(){});
+    }catch(e){}
+  }
+  if(!SAMPLE&&AGENT_URL){
+    AIN='AI';
+    SAMPLE={shim:true,json:function(prompt,o){
+      return fetch(AGENT_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({source:'prevent-first',profile:o&&o.profile})}).then(function(r){
+        return r.json().catch(function(){return {};}).then(function(j){
+          if(r.status===429)throw {code:'rate_limited'};
+          if(!r.ok||!j||j.ok===false||!j.data)throw {code:'error'};
+          return j.data;});});}};
+  }
+  function sampleErr(e){
+    var c=e&&e.code;
+    if(c==='not_granted'||c==='sampling_disabled'||c==='capability_disabled')return AIN+' wasn’t allowed for this page, so I kept the rule-based result.';
+    if(c==='rate_limited')return AIN+' is busy or at its usage limit. Try again later.';
+    if(c==='invalid_json')return AIN+'’s reply wasn’t in a usable form, so I kept the rule-based result.';
+    if(c==='cancelled')return '';
+    return AIN+' couldn’t answer this time, so I kept the rule-based result.';
+  }
+  function copyText(text,note,host){
+    var fb=function(){var ta=document.createElement('textarea');ta.className='mono-ta';ta.readOnly=true;ta.value=text;ta.setAttribute('aria-label','Text to copy');host.appendChild(ta);ta.focus();ta.select();note.textContent='Select and copy the text below.';};
+    try{navigator.clipboard.writeText(text).then(function(){note.textContent='Copied.';},fb);}catch(e){fb();}
+  }
+
+  /* --- 1. Quick-Fill --- */
+  function readText(file){return new Promise(function(ok){var fr=new FileReader();fr.onload=function(){ok(String(fr.result||''));};fr.onerror=function(){ok('');};fr.readAsText(file);});}
+  function readImage(file){
+    if(!SAMPLE||!SAMPLE.json)return Promise.resolve({labs:null,note:'Reading images needs an AI model that can read images, which isn’t available in this view. Paste the lab numbers into the box instead.'});
+    var lim=SAMPLE.limits?SAMPLE.limits().catch(function(){return null;}):Promise.resolve(null);
+    return lim.then(function(l){
+      if(!l||!l.images)return {labs:null,note:'Reading images isn’t available in this view. Paste the lab numbers into the box instead.'};
+      var prompt='This image is a lab report or a photo of health readings (it may be a dummy). Read only the numbers you can see. Reply with only a JSON object: {"age":number|null,"sex":"male"|"female"|null,"hba1c_percent":number|null,"fasting_glucose_mgdl":number|null,"ldl_mgdl":number|null,"total_cholesterol_mgdl":number|null,"bp_systolic":number|null,"bp_diastolic":number|null}. Convert mmol/L to mg/dL (glucose x18, cholesterol x38.67). Use null for anything not shown. Do not guess.';
+      return SAMPLE.json(prompt,{images:file,modelTier:'quick'}).then(function(j){
+        var labs={};
+        if(j&&typeof j==='object'){
+          if(+j.hba1c_percent>=3&&+j.hba1c_percent<=15)labs.hba1c=+j.hba1c_percent;
+          if(+j.fasting_glucose_mgdl>=30&&+j.fasting_glucose_mgdl<=500)labs.fbg=+j.fasting_glucose_mgdl;
+          if(+j.ldl_mgdl>=20&&+j.ldl_mgdl<=400)labs.ldl=+j.ldl_mgdl;
+          if(+j.total_cholesterol_mgdl>=50&&+j.total_cholesterol_mgdl<=500)labs.tc=+j.total_cholesterol_mgdl;
+          if(+j.bp_systolic>=70&&+j.bp_systolic<=260&&+j.bp_diastolic>=40&&+j.bp_diastolic<=160){labs.sys=+j.bp_systolic;labs.dia=+j.bp_diastolic;}
+          if(+j.age>=18&&+j.age<=100)labs.age=+j.age;
+          if(j.sex==='male'||j.sex==='female')labs.sex=j.sex;
+        }
+        return {labs:labs,note:Object.keys(labs).length?'':'I could not find clear values in that image.'};
+      }).catch(function(e){return {labs:null,note:sampleErr(e)||'Image reading was cancelled.'};});
+    });
+  }
+  function applyFields(f){
+    function chk(id){var el=$('#'+id,form);if(el&&!el.closest('label[hidden]'))el.checked=true;}
+    if(f.age!=null)$('#age').value=f.age;
+    if(f.sex){chk('sex-'+f.sex);updateSex();}
+    if(f.asian)chk('asian-yes');
+    if(f.proxy)chk('proxy-yes');
+    ['height','weight','waist'].forEach(function(k){if(f[k]!=null)$('#'+k).value=f[k];});
+    ['smoke','alcohol','activity','sleep','cervical'].forEach(function(k){if(f[k])chk(k+'-'+f[k]);});
+    ['other','diet','fam','known','warn'].forEach(function(g){(f[g]||[]).forEach(function(v){chk(g+'-'+v);});});
+    (f.em||[]).forEach(function(v){var el=$('#em-'+v);if(el)el.checked=true;});
+    updateBmi();updateAlert();
+  }
+  function runQuickFill(opts){
+    opts=opts||{};
+    var out=$('#qf-out'),btn=$('#qf-go');
+    btn.disabled=true;out.innerHTML='<p>Agent is reading…</p>';
+    var text=$('#qf-text').value;
+    return Promise.resolve().then(function(){
+      if(qfFile){
+        var n=qfFile.name.toLowerCase();
+        if(/\.(txt|csv|md)$/.test(n)||(qfFile.type&&qfFile.type.indexOf('text/')===0))return readText(qfFile).then(function(x){return {text:text+'\n'+x,imgLabs:null,note:''};});
+        if(qfFile.type&&qfFile.type.indexOf('image/')===0)return readImage(qfFile).then(function(r){return {text:text,imgLabs:r.labs,note:r.note};});
+        if(/\.pdf$/.test(n)||qfFile.type==='application/pdf')return {text:text,imgLabs:null,note:'I can’t read PDF files in this view. Paste the lab numbers into the box, or add a photo or screenshot of the report.'};
+        return {text:text,imgLabs:null,note:'I can’t read that file type. Paste the numbers into the box instead.'};
+      }
+      return {text:text,imgLabs:null,note:''};
+    }).then(function(inp){
+      var P=parseText(inp.text);
+      if(inp.imgLabs){
+        var il=inp.imgLabs;
+        ['hba1c','fbg','ldl','tc','sys','dia'].forEach(function(k){if(P.labs[k]==null&&il[k]!=null)P.labs[k]=il[k];});
+        if(il.age!=null&&P.f.age==null){P.f.age=il.age;P.got.push('Age '+il.age+' (from image)');}
+        if(il.sex&&!P.f.sex){P.f.sex=il.sex;P.got.push('Sex '+il.sex+' (from image)');}
+      }
+      LABLINES=labFlags(P.labs,P.f,P.got);
+      applyFields(P.f);
+      var r=readRaw(),miss=[];
+      if(isNaN(r.age))miss.push(['age','#age']);
+      if(!r.sex)miss.push(['sex','input[name="sex"]']);
+      if(!(r.height>=100))miss.push(['height','#height']);
+      if(!(r.weight>=25))miss.push(['weight','#weight']);
+      if(!r.smoke)miss.push(['smoking','input[name="smoke"]']);
+      if(!r.alcohol)miss.push(['alcohol','input[name="alcohol"]']);
+      if(!r.activity)miss.push(['activity','input[name="activity"]']);
+      var h='';
+      if(P.got.length)h+='<p><b>The agent filled '+P.got.length+' item'+(P.got.length===1?'':'s')+' below. Check them and change anything that is wrong.</b></p><div class="got">'+P.got.map(function(g){return '<span class="pill pill-info">'+esc(g)+'</span>';}).join('')+'</div>';
+      else h+='<p>I could not find anything to fill. Try a sentence like “I am 46, male, 175 cm, 87 kg”.</p>';
+      if(miss.length)h+='<p class="miss">Still needed: '+miss.map(function(m){return m[0];}).join(', ')+'.</p>';
+      else h+='<p>Everything required is filled. Review the sections below, then press See my prevention plan.</p>';
+      if(inp.note)h+='<p class="miss">'+esc(inp.note)+'</p>';
+      if(P.f.em.length)h+='<p class="miss">You mentioned an emergency symptom. See the red alert at the top of the page.</p>';
+      out.innerHTML=h;
+      btn.disabled=false;
+      if(!opts.silent&&miss.length){var t=$(miss[0][1],form);if(t){scrollTo(t.closest('.sec')||t);}}
+      return {filled:P.got.length,missing:miss.length};
+    });
+  }
+  $('#qf-file').addEventListener('change',function(e){qfFile=(e.target.files&&e.target.files[0])||null;$('#qf-fname').textContent=qfFile?qfFile.name:'';});
+  $('#qf-dummy').addEventListener('click',function(){var ta=$('#qf-text');ta.value=DUMMY_LAB;ta.focus();});
+  $('#qf-go').addEventListener('click',function(){runQuickFill();});
+
+  /* --- 4. Judge demo --- */
+  $('#demo-btn').addEventListener('click',function(){
+    setTab('check');form.reset();qfFile=null;$('#qf-fname').textContent='';$('#alert').hidden=true;updateSex();updateBmi();
+    $('#qf-text').value=DEMO_TEXT;
+    runQuickFill({silent:true}).then(function(){var r=validate();if(r)startAgent(r);});
+  });
+
+  /* --- 2. Agent reasoning step --- */
+  function qHTML(R){
+    return R.questions.map(function(q,i){
+      return '<fieldset class="qa"><legend>'+esc(q.q)+'</legend><p class="why">Asked because: '+esc(q.why)+'</p><div class="opts">'+q.opts.map(function(o,j){return '<label class="opt"><input type="radio" name="aq'+i+'" value="'+j+'" id="aq'+i+'-'+j+'"><span>'+esc(o[1])+'</span></label>';}).join('')+'</div></fieldset>';
+    }).join('');
+  }
+  function agentHTML(p,res,R,raw){
+    var sx=p.sex==='male'?'male':'female';
+    var h='<div class="col agent"><div class="rhead"><p class="eyebrow">Step 2 of 3 · AI Agent Reasoning</p><h2 id="a-h" tabindex="-1">Here is how I read your answers</h2><p class="meta mono" style="font-size:.9rem">'+p.age+' years · '+sx+' · BMI '+p.bmi.toFixed(1)+' ('+bmiDesc(p)+')</p></div>';
+    if(raw.em.length)h+='<div class="alert" role="alert" style="margin-top:12px">'+alertHTML()+'</div>';
+    h+='<section class="sec"><div class="a-src"><h3>What I noticed</h3><span class="pill pill-info" id="a-pill">Rule engine</span></div><ul class="think" id="a-think">'+R.bullets.map(function(b){return '<li>'+esc(b)+'</li>';}).join('')+'</ul><ul class="trace" id="a-trace">'+R.trace.map(function(t){return '<li>'+esc(t)+'</li>';}).join('')+'</ul></section>';
+    h+='<section class="sec"><div class="sec-h"><h3>Two quick questions</h3><p class="hint">Your answers can change the plan. You can skip them.</p></div><div id="a-qs">'+qHTML(R)+'</div></section>';
+    h+='<div class="cta-row" style="margin-top:16px"><button class="btn" type="button" id="a-go">Show my prevention plan</button><button class="btn ghost" type="button" id="a-back">Back to my answers</button><button class="btn ghost small" type="button" id="a-claude"'+(SAMPLE?'':' hidden')+'>Think deeper with '+AIN+'</button></div><p class="privacy" id="a-note" aria-live="polite" style="margin-top:10px">Nothing leaves this page unless you press “Think deeper with '+AIN+'”.</p></div>';
+    return h;
+  }
+  function startAgent(raw){
+    var p=normalize(raw),res=evaluate(p),R=reason(p,res,LABLINES);
+    S.raw=raw;S.R=R;S.answers=[];
+    agentEl.innerHTML=agentHTML(p,res,R,raw);
+    intro.hidden=true;results.hidden=true;agentEl.hidden=false;
+    $('#a-go').addEventListener('click',function(){
+      var answers=[];
+      S.R.questions.forEach(function(q,i){
+        var el=agentEl.querySelector('input[name="aq'+i+'"]:checked');
+        if(el){var o=q.opts[+el.value];answers.push({id:q.id,q:q.q,val:o[0],label:o[1],src:q.src});}
+      });
+      show(applyFx(raw,answers),false,answers);
+    });
+    $('#a-back').addEventListener('click',function(){agentEl.hidden=true;intro.hidden=false;scrollTo(form);});
+    $('#a-claude').addEventListener('click',function(){thinkDeeper(p,res,this);});
+    $('#a-h').focus({preventScroll:true});scrollTo(agentEl);
+  }
+  function thinkDeeper(p,res,btn){
+    var note=$('#a-note');
+    if(!SAMPLE)return;
+    btn.disabled=true;note.textContent='Asking '+AIN+'. Your answers (no name or contact details) are sent to '+(SAMPLE.shim?'a third-party AI service':AIN)+' for this step. This can take up to a minute.';
+    var prompt='You are a prevention-focused health information agent. You are not a doctor and must never diagnose.\nA person filled in a prevention form. Self-reported facts and the rule engine ranking are below.\n\n'+JSON.stringify(profileSummary(p,res))+'\n\nReply with only a JSON object: {"bullets":[string,string],"questions":[{"q":string,"options":[string,string,string]},{"q":string,"options":[string,string,string]}]}.\n- bullets: exactly 2, each under 35 words, plain language, explaining how you read THIS combination of habits and warning signs and what you will prioritise.\n- questions: exactly 2 clarifying questions tailored to the highest-risk items that the form could not answer. Each has exactly 3 short answer options. Do not ask for a name, phone number or any identifier. Do not diagnose.';
+    SAMPLE.json(prompt,{modelTier:'default',profile:profileSummary(p,res)}).then(function(j){
+      var ok=j&&Array.isArray(j.bullets)&&j.bullets.length>=2&&Array.isArray(j.questions)&&j.questions.length>=2;
+      if(ok)j.questions.slice(0,2).forEach(function(q){if(!q||typeof q.q!=='string'||!Array.isArray(q.options)||q.options.length<2)ok=false;});
+      if(!ok){note.textContent=AIN+'’s reply wasn’t in a usable form, so I kept the rule-based result.';return;}
+      S.R={bullets:[String(j.bullets[0]),String(j.bullets[1])],trace:S.R.trace,src:'claude',questions:j.questions.slice(0,2).map(function(q,i){return {id:'c'+i,q:String(q.q),opts:q.options.slice(0,3).map(function(o){return [String(o),String(o)];}),why:AIN+' saw a gap in your answers',src:'claude'};})};
+      $('#a-think').innerHTML=S.R.bullets.map(function(b){return '<li>'+esc(b)+'</li>';}).join('');
+      $('#a-qs').innerHTML=qHTML(S.R);
+      var pill=$('#a-pill');pill.textContent='Written by '+AIN;
+      note.textContent=AIN+' wrote these. Its questions are added to your doctor brief. Risk levels still come from the rule engine.';
+    }).catch(function(e){note.textContent=sampleErr(e)||'Cancelled.';}).then(function(){btn.disabled=false;});
+  }
+
+  /* --- 3. Agent actions --- */
+  function openModal(title,html,opener){
+    mOpener=opener||null;mTitle.textContent=title;mBody.innerHTML=html;modal.hidden=false;
+    document.documentElement.style.overflow='hidden';
+    $('.modal-card',modal).scrollTop=0;$('#modal-x').focus();
+  }
+  function closeModal(){
+    modal.hidden=true;mBody.innerHTML='';document.documentElement.style.overflow='';
+    if(lookupTimer){clearTimeout(lookupTimer);lookupTimer=null;}
+    if(mOpener&&mOpener.focus)mOpener.focus();
+  }
+  $('#modal-x').addEventListener('click',closeModal);
+  $('.modal-bg',modal).addEventListener('click',closeModal);
+  document.addEventListener('keydown',function(e){
+    if(modal.hidden)return;
+    if(e.key==='Escape'){closeModal();return;}
+    if(e.key==='Tab'){
+      var f=$$('button,a[href],input,textarea,select,summary',$('.modal-card',modal)).filter(function(x){return !x.disabled&&x.offsetParent!==null;});
+      if(!f.length)return;
+      var first=f[0],last=f[f.length-1];
+      if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
+      else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
+    }
+  });
+  results.addEventListener('click',function(e){
+    var b=e.target.closest('button[data-act]');if(!b)return;
+    var cid=b.getAttribute('data-cid'),act=b.getAttribute('data-act'),r=null;
+    (S.res||[]).forEach(function(x){if(x.c.id===cid)r=x;});
+    if(!r)return;
+    if(act==='brief')openBrief(r,b);else if(act==='clinics')openClinics(r,b);else if(act==='remind')openRemind(r,b);
+  });
+
+  function openBrief(r,opener){
+    var m=briefModel(S.p,S.res,r.c.id,S.answers,LABLINES,new Date());
+    var html='<p class="hint" style="color:var(--muted)">Prepared from your answers. Read it, then copy it or save it to show your doctor. Nothing is sent anywhere.</p><div class="sheet"><div class="sh-title">Doctor handover brief</div>'+m.sections.map(function(s){return '<div><h3>'+esc(s.h)+'</h3><ul>'+li(s.lines)+'</ul></div>';}).join('')+'</div><div class="cta-row"><button class="btn small" type="button" id="b-copy">Copy brief</button>'+(SAVE?'<button class="btn small ghost" type="button" id="b-save">Save as text file</button>':'')+'<span class="privacy" id="b-note" aria-live="polite"></span></div><div id="b-host"></div><p class="privacy">Printing isn’t available inside this page. Save the file and print it from there.</p>';
+    openModal('Doctor handover brief',html,opener);
+    $('#b-copy').addEventListener('click',function(){copyText(m.text,$('#b-note'),$('#b-host'));});
+    var sv=$('#b-save');
+    if(sv)sv.addEventListener('click',function(){
+      SAVE.save({filename:'doctor-handover-brief.txt',data:m.text}).then(function(){$('#b-note').textContent='Saved.';}).catch(function(err){$('#b-note').textContent=(err&&err.code==='declined')?'Save cancelled.':'Saving isn’t available here. Use Copy instead.';});
+    });
+  }
+
+  function openClinics(r,opener){
+    var keys=TESTS[r.c.id]||[],T=clinicTable(keys);
+    var steps=['Reading the tests your plan needs: '+keys.map(function(k){return TSHORT[k];}).join(', '),'Checking '+PROV.map(function(v){return v.name;}).join(', '),'Comparing estimated prices in AED'];
+    var html='<div class="notice">Simulated lookup for this demo. The names are real UAE providers, but prices are rough estimates and availability is not live. Confirm with the clinic before you book.</div><ol class="lookup" id="lk">'+steps.map(function(s){return '<li>'+esc(s)+'</li>';}).join('')+'</ol><div id="cl-out"></div>';
+    openModal('Screening clinics in Dubai for '+shortName(r),html,opener);
+    var items=$$('#lk li'),i=0;
+    function table(){
+      var th='<tr><th scope="col">Test</th>'+PROV.map(function(v){return '<th scope="col">'+esc(v.name)+'</th>';}).join('')+'</tr>';
+      var rows=T.rows.map(function(x){return '<tr><td>'+esc(x.name)+'</td>'+PROV.map(function(v){return '<td class="n">AED '+x.prices[v.id][0]+'–'+x.prices[v.id][1]+'</td>';}).join('')+'</tr>';}).join('');
+      var tot='<tr class="tot"><td>All tests, estimated total</td>'+PROV.map(function(v){return '<td class="n'+(v.id===T.best?' best':'')+'">AED '+T.totals[v.id][0]+'–'+T.totals[v.id][1]+(v.id===T.best?' (lowest)':'')+'</td>';}).join('')+'</tr>';
+      var links=PROV.map(function(v){return '<a class="btn small ghost" target="_blank" rel="noopener" href="'+esc('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(v.name+' Dubai'))+'">Find '+esc(v.name)+' on Google Maps</a>';}).join('');
+      $('#cl-out').innerHTML='<div class="tblwrap"><table class="tbl"><caption class="vh">Estimated test prices by provider</caption><thead>'+th+'</thead><tbody>'+rows+tot+'</tbody></table></div><div class="links" style="margin-top:12px">'+links+'</div><p class="privacy" style="margin-top:8px">Ask for the tests by the names above. Bring your doctor brief. Insurance may cover some of the cost.</p>';
+    }
+    function step(){
+      if(i<items.length){items[i].className='on';i++;lookupTimer=setTimeout(step,reduce?0:520);}
+      else{lookupTimer=null;table();}
+    }
+    step();
+  }
+
+  function openRemind(r,opener){
+    var keys=TESTS[r.c.id]||[],today=new Date(),labDef=ymd(addDays(today,7)),bpDef=ymd(addDays(today,3)),LBL=r.c.id==='dementia'?'Memory check-up':r.c.id==='sepsis'?'Vaccines':'Lab tests';
+    var html='<p class="hint" style="color:var(--muted)">The agent will prepare two calendar reminders. Nothing is created or sent until you approve.</p><div class="rem"><div class="field"><label for="r-lab">'+LBL+' <span class="unit">'+esc(keys.map(function(k){return TSHORT[k];}).join(', '))+'</span></label><input type="date" id="r-lab" value="'+labDef+'" min="'+ymd(today)+'"></div><div class="field"><label for="r-bp">Blood pressure re-check <span class="unit">3 days from now, at home</span></label><input type="date" id="r-bp" value="'+bpDef+'" min="'+ymd(today)+'"></div></div><div class="rem"><div class="field"><label for="r-email">Email me the plan <span class="unit">optional</span></label><input type="email" id="r-email" inputmode="email" autocomplete="email" placeholder="you@example.com"></div><div class="field"><label for="r-wa">WhatsApp number <span class="unit">optional, with country code</span></label><input type="tel" id="r-wa" inputmode="tel" autocomplete="tel" placeholder="+971501234567"></div></div><div class="rem"><div class="field"><label for="r-tg">Telegram username <span class="unit">optional, alert sent to your Telegram</span></label><input type="text" id="r-tg" autocomplete="off" autocapitalize="none" placeholder="@yourname"></div><div class="field"><label>imo <span class="unit">imo has no sending option for websites, so you get a Copy button</span></label></div></div><div class="field" id="r-hookwrap"><label for="r-hook">Webhook URL <span class="unit">optional</span></label><input type="url" id="r-hook" inputmode="url" autocomplete="off" placeholder="https://your-n8n.example.com/webhook/prevent-first"></div><p class="privacy">'+(WEBHOOK_URL?'If you type your email, the agent emails you the reminder plan: the condition, the tests and the dates. Nothing is sent unless you type an email. Your WhatsApp number is used only to open a ready-to-send message on your own phone.':'If you add a webhook, the agent sends the reminder plan to it as JSON: the condition, the tests and the dates. Your email and number are included only if you type them above, and only so the plan can be sent to you.')+'</p><p class="err" id="r-err" role="alert"></p><div class="cta-row" id="r-btns"><button class="btn" type="button" id="r-ok">Approve &amp; Auto-Schedule Reminders</button><button class="btn ghost" type="button" id="r-cancel">Cancel</button></div><div id="r-out" aria-live="polite"></div>';
+    openModal('Approve reminders',html,opener);
+    $('#r-cancel').addEventListener('click',closeModal);
+    if(WEBHOOK_URL){$('#r-hookwrap').hidden=true;}
+    $('#r-ok').addEventListener('click',function(){
+      var err=$('#r-err');err.textContent='';
+      var ld=parseYMD($('#r-lab').value),bd=parseYMD($('#r-bp').value),t0=new Date(today.getFullYear(),today.getMonth(),today.getDate());
+      if(!ld||ld<t0){err.textContent='Choose today or a later date for the lab tests.';return;}
+      if(!bd||bd<t0){err.textContent='Choose today or a later date for the blood pressure re-check.';return;}
+      var hook=(WEBHOOK_URL||$('#r-hook').value).trim();
+      var tg=($('#r-tg').value||'').trim().replace(/^@/,''),em=$('#r-email').value.trim(),wa=$('#r-wa').value.replace(/[\s\-()]/g,'');
+      if(em&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){err.textContent='That email address does not look right.';return;}
+      if(tg&&!/^[A-Za-z0-9_]{5,32}$/.test(tg)){err.textContent='A Telegram username has 5 to 32 letters, numbers or underscores, for example @yourname.';return;}
+      if(wa&&!/^\+?[0-9]{8,15}$/.test(wa)){err.textContent='Enter the WhatsApp number with country code, digits only, for example +971501234567.';return;}
+      if((em||wa)&&!hook){err.textContent='To receive the plan by email or WhatsApp, a webhook address is needed. Leave both blank to only use the calendar.';return;}
+      if(hook&&!WEBHOOK_URL&&!/^https:\/\/[^\s]+$/i.test(hook)){err.textContent='The webhook address must start with https://';return;}
+      if(WEBHOOK_URL&&!em&&!tg)hook='';
+      var evs=reminderEvents(r.c.id,ld,bd),ics=buildICS(evs,new Date());
+      var lang_ui=(window.I18N&&window.I18N.get&&window.I18N.get())||'en',TR=function(x){var t=window.I18N&&window.I18N.tr?window.I18N.tr(x):null;return t===null||t===undefined?x:String(t).trim();};
+      var waText=lang_ui==='ar'?(TR('Prevent First reminders ('+r.c.name+')')+'\n'+evs.map(function(e){return '- '+e.date.toLocaleDateString('ar-AE-u-nu-latn',{month:'long',day:'numeric',year:'numeric'})+': '+TR(e.title);}).join('\n')+'\nمعلومات ذاتية وليست تشخيصاً.'):('Prevent First reminders ('+r.c.name+')\n'+evs.map(function(e){return '- '+e.date.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})+': '+e.title;}).join('\n')+'\nSelf-reported. Not a diagnosis.');
+      var waLink=wa?'<a class="btn small ghost" target="_blank" rel="noopener" href="https://wa.me/'+wa.replace(/^\+/,'')+'?text='+encodeURIComponent(waText)+'">Send plan to my WhatsApp</a>':'';
+      var tgLink='<a class="btn small ghost" target="_blank" rel="noopener" href="https://t.me/share/url?url='+encodeURIComponent(location.origin+'/')+'&text='+encodeURIComponent(waText)+'">Share plan on Telegram</a>';
+      var imoBtn='<button class="btn small ghost" type="button" id="r-imo">Copy plan for imo</button>';
+      var payload={source:'prevent-first',event:'reminders_approved',approved_at:new Date().toISOString(),focus_condition:r.c.name,conditions_higher_risk:S.res.filter(function(x){return x.lv==='high'&&!x.managed;}).map(function(x){return x.c.name;}),tests:keys.map(function(k){return TNAME[k];}),timezone:(function(){try{return Intl.DateTimeFormat().resolvedOptions().timeZone;}catch(x){return '';}})(),lang:lang_ui,ar:(lang_ui==='ar'?{focus:TR(r.c.name),higher:S.res.filter(function(x){return x.lv==='high'&&!x.managed;}).map(function(x){return TR(x.c.name);}),tests:keys.map(function(k){return TR(TNAME[k]);}),titles:evs.map(function(e){return TR(e.title);})}:null),recipient:{email:em,whatsapp:wa,telegram:tg},events:evs.map(function(e){var en=new Date(e.date.getFullYear(),e.date.getMonth(),e.date.getDate(),e.h,e.m+e.dur);return {title:e.title,start:isoLocal(e.date,e.h,e.m),end:isoLocal(en,en.getHours(),en.getMinutes()),duration_min:e.dur,notes:e.desc};}),disclaimer:'Self-reported information. Not a diagnosis.'};
+      $('#r-btns').hidden=true;$('#r-ok').disabled=true;
+      var out='<div class="okbox">Approved. Your two reminders are ready.</div><div class="links">'+evs.map(function(e,i){return '<a class="btn small" target="_blank" rel="noopener" href="'+esc(gcalLink(e))+'">Add '+(i===0?LBL.toLowerCase():'BP re-check')+' to Google Calendar</a>';}).join('')+waLink+tgLink+imoBtn+'</div><div class="cta-row"><button class="btn small ghost" type="button" id="r-copy">Copy calendar (.ics) text</button>'+(SAVE?'<button class="btn small ghost" type="button" id="r-save">Save as text file</button>':'')+'<span class="privacy" id="r-note" aria-live="polite"></span></div><div id="r-host"></div><p class="privacy">This viewer can’t save files that end in .ics. Save or copy the text, then name the file prevent-first.ics and open it with your calendar app. The Google Calendar buttons work without that.</p>';
+      if(hook)out+='<p id="r-hook-status" class="okbox" style="background:var(--info-bg);color:var(--info)">Sending to your webhook…</p>';
+      out+='<details><summary>What is in the calendar file and webhook</summary><textarea class="mono-ta" readonly aria-label="Calendar file text">'+esc(ics)+'</textarea>'+(hook?'<textarea class="mono-ta" readonly aria-label="Webhook JSON">'+esc(JSON.stringify(payload,null,2))+'</textarea>':'')+'</details><div class="cta-row"><button class="btn small" type="button" id="r-done">Done</button></div>';
+      $('#r-out').innerHTML=out;
+      $('#r-done').addEventListener('click',closeModal);
+      $('#r-imo').addEventListener('click',function(){copyText(waText,$('#r-note'),$('#r-host'));});
+      $('#r-copy').addEventListener('click',function(){copyText(ics,$('#r-note'),$('#r-host'));});
+      var sv=$('#r-save');
+      if(sv)sv.addEventListener('click',function(){SAVE.save({filename:'prevent-first-reminders.txt',data:ics}).then(function(){$('#r-note').textContent='Saved. Rename it to .ics.';}).catch(function(x){$('#r-note').textContent=(x&&x.code==='declined')?'Save cancelled.':'Saving isn’t available here. Use Copy instead.';});});
+      if(hook){
+        var st=$('#r-hook-status');
+        function warn(msg){st.style.background='var(--warn-bg)';st.style.color='var(--warn)';st.textContent=msg;}
+        function good(msg){st.style.background='var(--ok-bg)';st.style.color='var(--ok)';st.textContent=msg;}
+        var blocked=function(){warn('Nothing was sent. This page isn’t allowed to make outgoing requests from here. The JSON is below, so you can paste it into your webhook tester.');};
+        var tip=/\/webhook-test\//i.test(hook)?' This looks like an n8n Test URL, which only works once after you click “Listen for test event”. For live use, switch to the Production URL and make the workflow Active.':'';
+        if(typeof fetch!=='function'){blocked();}
+        else{
+          var body=JSON.stringify(payload);
+          try{
+            fetch(hook,{method:'POST',headers:{'Content-Type':'application/json'},body:body}).then(function(res){
+              if(res.ok){res.json().catch(function(){return {};}).then(function(j){var m='Sent. Your webhook replied '+res.status+'.'+tip;if(hook.indexOf('/api/')===0){var parts=[];if(em)parts.push('Email: '+((j&&j.email)==='sent'?'sent':'not sent'));if(tg){if(j&&j.telegram==='sent')parts.push('Telegram: sent');else if(j&&j.telegram==='not_started')parts.push('Telegram: not sent yet. Open Telegram, find our bot'+(j.bot?' (@'+j.bot+')':'')+', press Start, then tap Approve again.');else parts.push('Telegram: not sent'+((j&&j.telegram_note)?' ('+j.telegram_note+')':''));}m=parts.join('. ')||m;}good(m);});}
+              else if(res.status===404&&hook.indexOf('/api/')===0)warn('The email function was not found on this site. Check that functions/api/send-plan.js is in GitHub, then redeploy.');
+              else if(res.status===404)warn('Your webhook replied 404, so it is not ready. In n8n, make sure the workflow is Active, use the Production URL, and set the Webhook node’s HTTP Method to POST.'+tip);
+              else if(hook.indexOf('/api/')===0){res.json().catch(function(){return {};}).then(function(j){var e=(j&&j.error)||'no details';warn('The email service replied '+res.status+': '+e+'.'+(res.status===500?' The site owner needs to add BREVO_API_KEY and SENDER_EMAIL in Netlify, then redeploy.':res.status===403?' This site address does not match ALLOWED_ORIGIN in Netlify.':res.status===429?' Too many requests. Try again later.':''));});}
+              else warn('Your webhook replied '+res.status+'. Open the Executions list in n8n to see why.'+tip);
+            }).catch(function(){
+              fetch(hook,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:body}).then(function(){
+                warn('Sent, but your webhook does not allow this site to read its reply (CORS), so the data may reach n8n as plain text. In the Webhook node, open Options, then Allowed Origins (CORS), and add this site’s address.'+tip);
+              }).catch(blocked);
+            });
+          }catch(x){blocked();}
+        }
+      }
+    });
+  }
+}
+if(typeof document!=='undefined')boot();
+else if(typeof module!=='undefined')module.exports={normalize:normalize,evaluate:evaluate,C:C,EXAMPLE:EXAMPLE,checklist:checklist,parseText:parseText,reason:reason,pickQuestions:pickQuestions,applyFx:applyFx,buildICS:buildICS,reminderEvents:reminderEvents,clinicTable:clinicTable,briefModel:briefModel,labFlags:labFlags};
+else if(typeof globalThis!=='undefined')globalThis.__PF={normalize:normalize,evaluate:evaluate,C:C,EXAMPLE:EXAMPLE,checklist:checklist,parseText:parseText,reason:reason,pickQuestions:pickQuestions,applyFx:applyFx,buildICS:buildICS,reminderEvents:reminderEvents,clinicTable:clinicTable,briefModel:briefModel,labFlags:labFlags};
+})();
+</script>
+<script id="i18n-dict">
+window.__I18N_DICT={
+"below the healthy range":"أقل من النطاق الصحي",
+"in the obese range":"ضمن نطاق السمنة",
+"above the healthy range":"أعلى من النطاق الصحي",
+"in the healthy range":"ضمن النطاق الصحي",
+"Nothing was sent. This page isn’t allowed to make outgoing requests from here. The JSON is below, so you can paste it into your webhook tester.":"لم يُرسَل شيء. لا يُسمح لهذه الصفحة بإجراء طلبات صادرة من هنا. ملف JSON أدناه، يمكنك لصقه في أداة اختبار الويب هوك.",
+"What is in the calendar file and webhook":"ما الذي يحتويه ملف التقويم والويب هوك",
+"Webhook URL":"رابط الويب هوك",
+"Spirometry (breathing test)":"قياس التنفس (اختبار التنفس)",
+"Low-dose CT scan of the chest, if you qualify":"أشعة مقطعية منخفضة الجرعة للصدر إن كنت مؤهلاً",
+"Chest X-ray":"أشعة سينية للصدر",
+"Sputum test for TB (rapid molecular test)":"فحص البلغم للسل (فحص جزيئي سريع)",
+"Mouth examination by a doctor or dentist":"فحص الفم عند طبيب أو طبيب أسنان",
+"Mammogram":"تصوير الثدي الشعاعي (الماموجرام)",
+"Clinical breast examination":"فحص الثدي السريري",
+"HPV test or Pap smear":"فحص HPV أو مسحة عنق الرحم",
+"Stool blood test (FIT)":"فحص الدم الخفي في البراز (FIT)",
+"Colonoscopy referral discussion":"مناقشة الإحالة إلى تنظير القولون",
+"Memory and thinking assessment by a doctor (for example MoCA)":"تقييم الذاكرة والتفكير عند الطبيب (مثل MoCA)",
+"Blood tests for treatable causes of memory loss (vitamin B12, thyroid, blood sugar)":"فحوصات دم للأسباب القابلة للعلاج لفقدان الذاكرة (فيتامين B12 والغدة الدرقية وسكر الدم)",
+"Hearing test (audiometry)":"فحص السمع (قياس السمع)",
+"Eye and vision check":"فحص العينين والبصر",
+"Flu vaccine (yearly)":"لقاح الإنفلونزا (سنوياً)",
+"Pneumococcal vaccine, if your doctor advises it":"لقاح المكورات الرئوية إن نصح به طبيبك",
+"HbA1c":"السكر التراكمي HbA1c",
+"Fasting glucose":"سكر الدم الصائم",
+"Lipid profile":"صورة الدهون",
+"Blood pressure":"ضغط الدم",
+"Kidney function":"وظائف الكلى",
+"Urine albumin":"ألبومين البول",
+"ECG":"تخطيط القلب",
+"Liver function":"وظائف الكبد",
+"Spirometry":"قياس التنفس",
+"Low-dose CT":"أشعة مقطعية منخفضة الجرعة",
+"Sputum TB test":"فحص البلغم للسل",
+"Mouth exam":"فحص الفم",
+"Breast exam":"فحص الثدي",
+"HPV or Pap test":"فحص HPV أو مسحة عنق الرحم",
+"Stool blood test":"فحص الدم في البراز",
+"Colonoscopy referral":"إحالة لتنظير القولون",
+"Memory assessment":"تقييم الذاكرة",
+"B12 and thyroid tests":"فحوصات B12 والغدة الدرقية",
+"Hearing test":"فحص السمع",
+"Eye check":"فحص العينين",
+"Flu vaccine":"لقاح الإنفلونزا",
+"Pneumococcal vaccine":"لقاح المكورات الرئوية",
+"Re-check your blood pressure":"أعد قياس ضغط دمك",
+"Fatty liver":"الكبد الدهني",
+"Mouth exam at routine dental visits.":"فحص الفم خلال زيارات الأسنان الدورية.",
+"HbA1c, Fasting glucose":"السكر التراكمي، سكر الدم الصائم",
+"If you type your email, the agent emails you the reminder plan: the condition, the tests and the dates. Nothing is sent unless you type an email. Your WhatsApp number is used only to open a ready-to-send message on your own phone.":"إذا كتبت بريدك الإلكتروني، يرسل لك الوكيل خطة التذكير: الحالة والفحوصات والمواعيد. لا يُرسَل شيء ما لم تكتب بريدك. يُستخدم رقم واتساب فقط لفتح رسالة جاهزة للإرسال على هاتفك أنت.",
+"Prevent First":"الوقاية أولاً",
+"Check my risk":"افحص مخاطري",
+"Condition library":"مكتبة الأمراض",
+"For employers & clinics":"لأصحاب العمل والعيادات",
+"Load Judge Demo Profile":"تحميل ملف تجريبي للتحكيم",
+"Prevention guide for 15 serious conditions":"دليل الوقاية من ١٥ حالة صحية خطيرة",
+"Know what to do, and what to avoid, before illness starts.":"اعرف ما يجب فعله وما يجب تجنبه قبل أن يبدأ المرض.",
+"Answer a few questions about your body and habits. You get the do’s, don’ts, screening tests and warning signs for heart attack, stroke, diabetes, cancers, dementia, sepsis and more, matched to your profile.":"أجب عن بضعة أسئلة عن جسمك وعاداتك. ستحصل على ما يُنصح به وما يجب تجنبه وفحوصات الكشف المبكر وعلامات الإنذار للنوبة القلبية والسكتة الدماغية والسكري والسرطانات والخرف والإنتان وغيرها، بما يناسب ملفك.",
+"Start the check":"ابدأ الفحص",
+"See an example plan":"شاهد خطة نموذجية",
+"For employers & clinics: team view":"لأصحاب العمل والعيادات: عرض الفريق",
+"Takes about two minutes. Nothing is saved. Your answers stay on this page unless you choose the optional “Think deeper” AI step or ask for your reminder plan by email.":"يستغرق نحو دقيقتين. لا يُحفظ أي شيء. تبقى إجاباتك في هذه الصفحة ما لم تختر خطوة الذكاء الاصطناعي الاختيارية «فكّر بعمق» أو تطلب خطة التذكيرات عبر البريد الإلكتروني.",
+"Example result":"نتيجة نموذجية",
+"46 · male · BMI 28.4":"٤٦ سنة · ذكر · مؤشر كتلة الجسم 28.4",
+"Higher":"أعلى",
+"Moderate":"متوسط",
+"Lower":"أقل",
+"Type 2 diabetes":"السكري من النوع الثاني",
+"Get an HbA1c or fasting blood sugar test.":"أجرِ فحص السكر التراكمي (HbA1c) أو سكر الدم الصائم.",
+"Heart attack (coronary heart disease)":"النوبة القلبية (مرض الشريان التاجي)",
+"Check blood pressure, cholesterol and blood sugar, and ask for a 10-year heart risk estimate.":"افحص ضغط الدم والكوليسترول وسكر الدم، واطلب تقدير خطر القلب خلال ١٠ سنوات.",
+"High blood pressure":"ارتفاع ضغط الدم",
+"Check your blood pressure, and repeat it on another day.":"افحص ضغط دمك وكرر الفحص في يوم آخر.",
+"Stroke":"السكتة الدماغية",
+"Fatty liver disease":"الكبد الدهني",
+"Chronic kidney disease":"مرض الكلى المزمن",
+"COPD (chronic lung disease)":"الانسداد الرئوي المزمن (مرض رئوي مزمن)",
+"Lung cancer":"سرطان الرئة",
+"Oral (mouth) cancer":"سرطان الفم",
+"Breast cancer":"سرطان الثدي",
+"Cervical cancer":"سرطان عنق الرحم",
+"Colorectal (bowel) cancer":"سرطان القولون والمستقيم (الأمعاء)",
+"Tuberculosis (TB)":"السل (TB)",
+"Dementia and Alzheimer’s disease":"الخرف ومرض ألزهايمر",
+"Sepsis (severe infection)":"الإنتان (عدوى شديدة)",
+"Is something happening right now?":"هل يحدث شيء الآن؟",
+"This tool is for prevention, not emergencies. Tick anything that is happening now.":"هذه الأداة للوقاية وليست للطوارئ. ضع علامة على أي شيء يحدث الآن.",
+"Emergency symptoms":"أعراض طارئة",
+"Chest pain, pressure or tightness, especially spreading to the arm, jaw or back, or with sweating or breathlessness":"ألم في الصدر أو ضغط أو انقباض، خصوصاً إذا انتشر إلى الذراع أو الفك أو الظهر، أو صاحبه تعرّق أو ضيق نفس",
+"Sudden weakness or numbness on one side, a drooping face, slurred speech, or sudden loss of vision":"ضعف أو خدر مفاجئ في أحد الجانبين، أو تدلٍّ في الوجه، أو تلعثم في الكلام، أو فقدان مفاجئ للبصر",
+"Severe difficulty breathing, or unable to speak a full sentence":"صعوبة شديدة في التنفس، أو عدم القدرة على نطق جملة كاملة",
+"A sudden, severe headache unlike any before":"صداع مفاجئ وشديد لم تشعر بمثله من قبل",
+"Fainting or collapse":"إغماء أو انهيار",
+"Coughing up or vomiting blood":"سعال أو قيء دموي",
+"Confusion, fast deep breathing or repeated vomiting with extreme thirst (possible diabetic emergency)":"ارتباك، أو تنفس عميق سريع، أو قيء متكرر مع عطش شديد (قد تكون حالة طارئة للسكري)",
+"Signs of a severe infection (sepsis): confusion or unusual drowsiness, fast breathing, shivering with a very high or very low temperature, cold, pale or mottled skin, passing hardly any urine, or feeling you might die":"علامات عدوى شديدة (إنتان): ارتباك أو نعاس غير معتاد، تنفس سريع، رعشة مع حرارة مرتفعة جداً أو منخفضة جداً، جلد بارد أو شاحب أو مبقّع، قلة شديدة في التبول، أو شعور بأنك قد تموت",
+"About you":"عنك",
+"AI Agent":"الوكيل الذكي",
+"Quick-Fill":"التعبئة السريعة",
+"Write a sentence about yourself, or add a lab report. The agent fills the form below. You can change anything it fills.":"اكتب جملة عن نفسك أو أضف تقريراً مخبرياً. يملأ الوكيل النموذج أدناه، ويمكنك تعديل أي شيء يملؤه.",
+"Describe yourself in a sentence":"صف نفسك في جملة",
+"Add a lab report (image, PDF or text)":"أضف تقريراً مخبرياً (صورة أو PDF أو نص)",
+"Insert a dummy lab report":"إدراج تقرير مخبري تجريبي",
+"Text and .txt files are read on this page. An image is sent to Claude to read, and only after you press the button below.":"تُقرأ النصوص وملفات ‎.txt في هذه الصفحة. أما الصورة فتُرسَل إلى Claude لقراءتها، ولا يحدث ذلك إلا بعد أن تضغط الزر أدناه.",
+"Let Agent Auto-Fill Profile":"دع الوكيل يملأ الملف تلقائياً",
+"Age":"العمر",
+"years":"سنة",
+"Sex at birth":"الجنس عند الولادة",
+"(screening advice differs)":"(تختلف نصائح الفحص)",
+"Female":"أنثى",
+"Male":"ذكر",
+"Background":"الخلفية",
+"I am of South Asian, East Asian or Southeast Asian background":"أنحدر من جنوب آسيا أو شرق آسيا أو جنوب شرق آسيا",
+"I am filling this in for a parent or relative":"أملأ هذا النموذج لأحد الوالدين أو لأحد الأقارب",
+"This changes the weight and waist cut-offs. Asian adults develop diabetes and heart disease at lower weights.":"يغيّر هذا حدود الوزن والخصر. يصاب البالغون الآسيويون بالسكري وأمراض القلب عند أوزان أقل.",
+"Your body":"جسمك",
+"Height":"الطول",
+"cm":"سم",
+"Weight":"الوزن",
+"kg":"كغ",
+"Waist":"الخصر",
+"cm, optional":"سم، اختياري",
+"Daily habits":"العادات اليومية",
+"Smoking":"التدخين",
+"Never smoked":"لم أدخّن قط",
+"Quit":"أقلعت",
+"Smoke now":"أدخّن الآن",
+"Alcohol":"الكحول",
+"None or rare":"لا أشرب أو نادراً",
+"A few drinks a week":"بضع مشروبات في الأسبوع",
+"Daily, or often 5 or more in one sitting":"يومياً، أو غالباً ٥ مشروبات أو أكثر في جلسة واحدة",
+"Brisk activity in a week":"النشاط السريع في الأسبوع",
+"walking fast, cycling, sport":"المشي السريع، ركوب الدراجة، الرياضة",
+"Under 75 minutes":"أقل من ٧٥ دقيقة",
+"75 to 149 minutes":"من ٧٥ إلى ١٤٩ دقيقة",
+"150 minutes or more":"١٥٠ دقيقة أو أكثر",
+"Sleep on most nights":"النوم في معظم الليالي",
+"Under 6 hours":"أقل من ٦ ساعات",
+"6 hours or more":"٦ ساعات أو أكثر",
+"Food and drink: tick what is true for you":"الطعام والشراب: ضع علامة على ما ينطبق عليك",
+"Fried or packaged snacks most days":"وجبات خفيفة مقلية أو معلبة في معظم الأيام",
+"Sugary drinks or sweets most days":"مشروبات محلاة أو حلويات في معظم الأيام",
+"Extra salt, pickles, papad or namkeen daily":"ملح إضافي أو مخللات أو بابد أو نمكين يومياً",
+"Fewer than 5 servings of fruit and veg a day":"أقل من ٥ حصص من الفواكه والخضار يومياً",
+"Anything else that applies":"أي شيء آخر ينطبق عليك",
+"I chew tobacco, gutka, khaini or paan with tobacco":"أمضغ التبغ أو الغوتكا أو الخيني أو البان المحتوي على التبغ",
+"I cook with wood, coal or dung, or live in heavy smoke or pollution":"أطهو بالحطب أو الفحم أو الروث، أو أعيش في دخان كثيف أو تلوث",
+"I take painkillers like diclofenac or ibuprofen most days":"أتناول مسكنات مثل ديكلوفيناك أو إيبوبروفين في معظم الأيام",
+"I live or work closely with someone who has TB":"أعيش أو أعمل عن قرب مع شخص مصاب بالسل",
+"I had surgery or a hospital stay in the last 3 months, or I have a weak immune system":"أجريت عملية جراحية أو أقمت في المستشفى خلال الأشهر الثلاثة الماضية، أو لدي مناعة ضعيفة",
+"I have hearing loss":"لدي فقدان في السمع",
+"I have trouble seeing, even with glasses":"لدي صعوبة في الرؤية حتى مع النظارات",
+"I have had a head injury with a knock-out or concussion":"تعرضت لإصابة في الرأس مع فقدان وعي أو ارتجاج",
+"I spend most days with very little social contact":"أقضي معظم أيامي مع تواصل اجتماعي قليل جداً",
+"Family and health history":"التاريخ العائلي والصحي",
+"Parent, brother or sister with:":"أحد الوالدين أو أخ أو أخت مصاب بـ:",
+"Diabetes":"السكري",
+"Heart attack before 55 (men) or 65 (women)":"نوبة قلبية قبل سن ٥٥ (للرجال) أو ٦٥ (للنساء)",
+"Kidney disease":"مرض الكلى",
+"Breast or ovarian cancer":"سرطان الثدي أو المبيض",
+"Bowel (colon or rectal) cancer":"سرطان الأمعاء (القولون أو المستقيم)",
+"Dementia or Alzheimer’s disease":"الخرف أو مرض ألزهايمر",
+"Already told by a doctor that you have:":"أخبرك الطبيب بالفعل أنك مصاب بـ:",
+"High cholesterol":"ارتفاع الكوليسترول",
+"Borderline sugar (prediabetes)":"سكر على الحد (مقدمات السكري)",
+"Heart disease or a stroke":"مرض في القلب أو سكتة دماغية",
+"Have you had a cervical screening test (HPV test or Pap smear) in the last 5 years?":"هل أجريت فحص كشف عنق الرحم (فحص HPV أو مسحة عنق الرحم) خلال السنوات الخمس الماضية؟",
+"Yes":"نعم",
+"No or not sure":"لا أو لست متأكداً",
+"Warning signs in the last few weeks":"علامات إنذار في الأسابيع الأخيرة",
+"Not emergencies, but worth a doctor’s visit. Tick any that apply.":"ليست طوارئ لكنها تستحق زيارة الطبيب. ضع علامة على ما ينطبق.",
+"Warning signs":"علامات الإنذار",
+"Cough lasting 3 weeks or more":"سعال يستمر ٣ أسابيع أو أكثر",
+"Weight loss without trying":"فقدان وزن دون محاولة",
+"Mouth sore, or white or red patch, not healing for 2 weeks":"قرحة في الفم أو بقعة بيضاء أو حمراء لا تلتئم خلال أسبوعين",
+"Hoarse voice for 3 weeks or more":"بحّة في الصوت لمدة ٣ أسابيع أو أكثر",
+"Chest tightness or breathlessness on mild effort":"انقباض في الصدر أو ضيق نفس عند بذل جهد خفيف",
+"Blood in stool, black stools, or a bowel habit change lasting weeks":"دم في البراز أو براز أسود أو تغيّر في عادات الأمعاء يستمر أسابيع",
+"Extreme thirst, passing urine very often, or blurred vision":"عطش شديد أو تبوّل متكرر جداً أو تشوش في الرؤية",
+"Swollen ankles or eyes, or foamy urine":"تورم في الكاحلين أو العينين أو بول رغوي",
+"A lab report or home test showed high blood sugar (fasting 126 mg/dL or more, or HbA1c 6.5% or more)":"أظهر تقرير مخبري أو فحص منزلي ارتفاعاً في سكر الدم (صائم ١٢٦ ملغ/دل أو أكثر، أو سكر تراكمي ٦٫٥٪ أو أكثر)",
+"Blood pressure readings of 140/90 mmHg or higher":"قراءات ضغط الدم ١٤٠/٩٠ ملم زئبق أو أعلى",
+"Memory or thinking changes: repeating questions, getting lost on familiar routes, trouble with money or familiar tasks, or a change in personality":"تغيّرات في الذاكرة أو التفكير: تكرار الأسئلة، أو الضياع في طرق مألوفة، أو صعوبة في التعامل مع المال أو المهام المألوفة، أو تغيّر في الشخصية",
+"Yellow eyes or skin, or dark urine":"اصفرار العينين أو الجلد أو بول داكن",
+"New lump or change in a breast":"كتلة جديدة أو تغيّر في الثدي",
+"Vaginal bleeding between periods, after sex or after menopause":"نزيف مهبلي بين الدورات أو بعد الجماع أو بعد سن اليأس",
+"See my prevention plan":"اعرض خطتي الوقائية",
+"Adults 18 and over.":"للبالغين من ١٨ سنة فأكثر.",
+"Fifteen conditions, one page each":"خمس عشرة حالة صحية، صفحة لكل منها",
+"General guidance for adults. Open a condition for the do’s, don’ts, screening tests and warning signs. For advice matched to you, use":"إرشادات عامة للبالغين. افتح أي حالة لمعرفة ما يُنصح به وما يجب تجنبه وفحوصات الكشف وعلامات الإنذار. وللحصول على نصائح تناسبك استخدم",
+"All":"الكل",
+"Heart & stroke":"القلب والسكتة",
+"Diabetes, liver & kidney":"السكري والكبد والكلى",
+"Cancer":"السرطان",
+"Lungs & infection":"الرئتان والعدوى",
+"Brain & memory":"الدماغ والذاكرة",
+"Do":"افعل",
+"Don’t":"تجنّب",
+"Screening and tests":"الفحوصات والكشف",
+"Warning signs: see a doctor soon":"علامات إنذار: راجع الطبيب قريباً",
+"Source:":"المصدر:",
+"General information based on public health guidance from WHO, NHS, CDC and national screening programmes. It is not medical advice and does not diagnose anything. Risk levels count the factors you report; they are not a percentage chance. Adults 18 and over only.":"معلومات عامة مبنية على إرشادات الصحة العامة من منظمة الصحة العالمية وNHS وCDC وبرامج الفحص الوطنية. ليست نصيحة طبية ولا تشخّص أي مرض. تحسب مستويات الخطر العوامل التي تذكرها، وهي ليست نسبة احتمال. للبالغين من ١٨ سنة فأكثر فقط.",
+"In an emergency call your local number: 112 (India, EU), 911 (US, Canada), 999 (UK). In India, 108 is the ambulance line.":"في حالة الطوارئ اتصل برقم الطوارئ المحلي: ٩٩٩ أو ٩٩٨ للإسعاف (الإمارات)، ١١٢ (الهند والاتحاد الأوروبي)، ٩١١ (الولايات المتحدة وكندا). وفي الهند خط الإسعاف هو ١٠٨.",
+"Close":"إغلاق",
+"Sections":"الأقسام",
+"I am 46, South Asian male, 175cm, 87kg, my dad had diabetes, and I take ibuprofen daily":"عمري ٤٦ سنة، رجل من جنوب آسيا، طولي ١٧٥ سم ووزني ٨٧ كغ، وكان والدي مصاباً بالسكري، وأتناول إيبوبروفين يومياً",
+"e.g. 42":"مثال: 42",
+"e.g. 170":"مثال: 170",
+"e.g. 72":"مثال: 72",
+"at the navel":"عند السرّة",
+"Filter by category":"تصفية حسب الفئة",
+"Body mass index":"مؤشر كتلة الجسم",
+", in the obese range.":"، ضمن نطاق السمنة.",
+"This is an example person, not you.":"هذا شخص نموذجي وليس أنت.",
+"Enter my own answers":"أدخل إجاباتي الخاصة",
+"Your prevention plan":"خطتك الوقائية",
+"Here is where to start":"من هنا تبدأ",
+"Levels count the risk factors you reported. They are not a diagnosis or a percentage chance. Showing 13 of 15 conditions that apply to you; the rest are in the Condition library. Cards marked Higher include agent actions that need your approval.":"تحسب المستويات عوامل الخطر التي ذكرتها. وهي ليست تشخيصاً ولا نسبة احتمال. نعرض 13 من 15 حالة تنطبق عليك، والباقي في مكتبة الأمراض. تتضمن البطاقات المصنفة «أعلى» إجراءات للوكيل تتطلب موافقتك.",
+"Why this level":"سبب هذا المستوى",
+"Agent":"الوكيل",
+"Agent Actions (Requires Your Approval)":"إجراءات الوكيل (تتطلب موافقتك)",
+"The agent prepares each item. Nothing is created or sent until you approve it.":"يُعدّ الوكيل كل بند. لا يُنشأ أو يُرسَل أي شيء حتى توافق عليه.",
+"Generate Doctor Handover Brief":"إنشاء ملخص لتسليمه للطبيب",
+"Find Nearby UAE Screening Clinics":"البحث عن عيادات فحص قريبة في الإمارات",
+"Approve & Auto-Schedule Reminders":"الموافقة وجدولة التذكيرات تلقائياً",
+"Age 45 or older":"٤٥ سنة أو أكثر",
+"Age 40 or older":"٤٠ سنة أو أكثر",
+"Age 50 or older":"٥٠ سنة أو أكثر",
+"Age 55 or older":"٥٥ سنة أو أكثر",
+"Age 60 or older":"٦٠ سنة أو أكثر",
+"Age 65 or older":"٦٥ سنة أو أكثر",
+"Age within the screening window of 25 to 65":"العمر ضمن نطاق الفحص من ٢٥ إلى ٦٥",
+"Weight in the obese range":"الوزن ضمن نطاق السمنة",
+"Weight above the healthy range":"الوزن أعلى من النطاق الصحي",
+"Underweight":"نقص الوزن",
+"Waist measurement above the risk line":"محيط الخصر أعلى من خط الخطر",
+"Little physical activity":"نشاط بدني قليل",
+"Parent or sibling with diabetes":"أحد الوالدين أو الإخوة مصاب بالسكري",
+"Asian background: diabetes tends to develop at a lower weight":"خلفية آسيوية: يميل السكري إلى الظهور عند وزن أقل",
+"Borderline blood sugar (prediabetes)":"سكر دم على الحد (مقدمات السكري)",
+"Borderline blood sugar":"سكر دم على الحد",
+"Chewing tobacco":"مضغ التبغ",
+"Chewing tobacco, gutka, khaini or paan with tobacco":"مضغ التبغ أو الغوتكا أو الخيني أو البان المحتوي على التبغ",
+"Close contact with someone who has TB":"مخالطة شخص مصاب بالسل",
+"Close relative with breast or ovarian cancer":"قريب مباشر مصاب بسرطان الثدي أو المبيض",
+"Current smoking":"التدخين الحالي",
+"Past smoking":"التدخين سابقاً",
+"Tobacco use":"استخدام التبغ",
+"Diabetes":"السكري",
+"Early heart disease in the family":"مرض قلبي مبكر في العائلة",
+"Parent or sibling with early heart disease":"أحد الوالدين أو الإخوة مصاب بمرض قلبي مبكر",
+"Few fruits and vegetables":"قلة الفواكه والخضار",
+"Fried or packaged food most days":"طعام مقلي أو معلب في معظم الأيام",
+"Heavy drinking":"إفراط في شرب الكحول",
+"High salt intake":"تناول كمية كبيرة من الملح",
+"Salty food, pickles, papad or extra salt every day":"طعام مالح أو مخللات أو بابد أو ملح إضافي يومياً",
+"No cervical screening test in the last 5 years":"لا فحص لعنق الرحم خلال السنوات الخمس الماضية",
+"Painkillers such as diclofenac or ibuprofen most days":"مسكنات مثل ديكلوفيناك أو إيبوبروفين في معظم الأيام",
+"Parent or sibling who had a stroke":"أحد الوالدين أو الإخوة أصيب بسكتة دماغية",
+"Parent or sibling with bowel cancer":"أحد الوالدين أو الإخوة مصاب بسرطان الأمعاء",
+"Parent or sibling with kidney disease":"أحد الوالدين أو الإخوة مصاب بمرض الكلى",
+"Sleeping under 6 hours":"النوم أقل من ٦ ساعات",
+"Smoky cooking or heavy air pollution":"طهي مُدخِّن أو تلوث هواء شديد",
+"Sugary drinks or sweets most days":"مشروبات محلاة أو حلويات في معظم الأيام",
+"No major risk factors reported":"لم تُذكر عوامل خطر رئيسية",
+"For everyone":"للجميع",
+"Use no tobacco in any form, and keep alcohol low.":"لا تستخدم التبغ بأي شكل، وأبقِ الكحول في أدنى مستوى.",
+"Move for 150 minutes a week at a brisk pace.":"تحرّك ١٥٠ دقيقة في الأسبوع بوتيرة سريعة.",
+"Eat five servings of fruit and vegetables a day (about 400 g).":"تناول خمس حصص من الفواكه والخضار يومياً (نحو ٤٠٠ غرام).",
+"Ask your doctor which vaccines you need: yearly flu, tetanus every 10 years, hepatitis B, HPV if eligible.":"اسأل طبيبك عن اللقاحات التي تحتاجها: الإنفلونزا سنوياً، والكزاز كل ١٠ سنوات، والتهاب الكبد B، وHPV إن كنت مؤهلاً.",
+"Get a full health check every year after 40, or sooner with risk factors.":"أجرِ فحصاً صحياً شاملاً كل سنة بعد سن الأربعين، أو أبكر إذا وُجدت عوامل خطر.",
+"Numbers to know":"أرقام يجب أن تعرفها",
+"Blood pressure":"ضغط الدم",
+"Aim below 120/80 mmHg. 140/90 or higher on repeat readings is high.":"الهدف أقل من ١٢٠/٨٠ ملم زئبق. القراءة ١٤٠/٩٠ أو أعلى عند التكرار تعني ارتفاعاً.",
+"Fasting blood sugar":"سكر الدم الصائم",
+"Below 100 mg/dL (5.6 mmol/L) is normal. 100 to 125 is prediabetes. 126 or more on two tests suggests diabetes.":"أقل من ١٠٠ ملغ/دل (٥٫٦ ملمول/لتر) طبيعي. من ١٠٠ إلى ١٢٥ مقدمات سكري. ١٢٦ أو أكثر في فحصين يشير إلى السكري.",
+"HbA1c":"السكر التراكمي (HbA1c)",
+"Below 5.7% is normal. 5.7 to 6.4% is prediabetes. 6.5% or more suggests diabetes.":"أقل من ٥٫٧٪ طبيعي. من ٥٫٧ إلى ٦٫٤٪ مقدمات سكري. ٦٫٥٪ أو أكثر يشير إلى السكري.",
+"Healthy range 18.5 to 22.9 for you.":"النطاق الصحي بالنسبة لك من ١٨٫٥ إلى ٢٢٫٩.",
+"Under 90 cm for you.":"أقل من ٩٠ سم بالنسبة لك.",
+"Salt":"الملح",
+"Under 5 g a day, about one teaspoon in total.":"أقل من ٥ غرامات يومياً، أي نحو ملعقة صغيرة في المجموع.",
+"Take this to your doctor":"خذ هذا إلى طبيبك",
+"Tests worth asking about, based on your answers, and three questions.":"فحوصات تستحق السؤال عنها بناءً على إجاباتك، وثلاثة أسئلة.",
+"Tests to ask about":"فحوصات اسأل عنها",
+"Blood pressure check":"فحص ضغط الدم",
+"Questions to ask":"أسئلة للطبيب",
+"What is my 10-year risk of heart attack and stroke?":"ما خطر إصابتي بالنوبة القلبية والسكتة الدماغية خلال ١٠ سنوات؟",
+"Which vaccines do I need at my age?":"ما اللقاحات التي أحتاجها في عمري؟",
+"Which two changes would help me most?":"ما التغييران اللذان سيفيدانني أكثر؟",
+"Copy this checklist":"انسخ هذه القائمة",
+"Edit my answers":"عدّل إجاباتي",
+"Checklist text to copy":"نص القائمة للنسخ",
+"Step 2 of 3 · AI Agent Reasoning":"الخطوة ٢ من ٣ · تفكير الوكيل الذكي",
+"Here is how I read your answers":"هكذا قرأت إجاباتك",
+"What I noticed":"ما لاحظته",
+"Rule engine":"محرك القواعد",
+"Your mix of weight in the obese range, high cholesterol and little physical activity pushes type 2 diabetes, heart attack and high blood pressure up at the same time, so I scored them as one pattern, not separate problems.":"يؤدي اجتماع الوزن ضمن نطاق السمنة وارتفاع الكوليسترول وقلة النشاط البدني إلى رفع خطر السكري من النوع الثاني والنوبة القلبية وارتفاع ضغط الدم في الوقت نفسه، لذلك قيّمتها كنمط واحد وليست مشكلات منفصلة.",
+"Nothing in your answers needs urgent care, so I ranked by how many risk factors add up: type 2 diabetes, heart attack and high blood pressure first.":"لا شيء في إجاباتك يستدعي رعاية عاجلة، لذلك رتّبت بحسب عدد عوامل الخطر المتراكمة: السكري من النوع الثاني ثم النوبة القلبية ثم ارتفاع ضغط الدم أولاً.",
+"Emergency check: none ticked":"فحص الطوارئ: لم تُحدَّد أي علامة",
+"Picked 2 questions the form could not settle":"اختار سؤالين لم يتمكن النموذج من حسمهما",
+"Two quick questions":"سؤالان سريعان",
+"Your answers can change the plan. You can skip them.":"قد تغيّر إجاباتك الخطة. يمكنك تخطيهما.",
+"Have you had a blood sugar or HbA1c test in the last 12 months?":"هل أجريت فحص سكر الدم أو السكر التراكمي خلال الأشهر الـ١٢ الماضية؟",
+"Asked because: Type 2 diabetes is one of your top risks":"السبب: السكري من النوع الثاني من أبرز مخاطرك",
+"Yes, it was normal":"نعم، كان طبيعياً",
+"Yes, it was high":"نعم، كان مرتفعاً",
+"No":"لا",
+"Lately, have you been unusually thirsty or passing urine very often?":"هل شعرت مؤخراً بعطش غير معتاد أو تبوّلت بكثرة؟",
+"Show my prevention plan":"اعرض خطتي الوقائية",
+"Back to my answers":"العودة إلى إجاباتي",
+"Think deeper with AI":"فكّر بعمق بالذكاء الاصطناعي",
+"Nothing leaves this page unless you press “Think deeper with AI”.":"لا يغادر أي شيء هذه الصفحة ما لم تضغط «فكّر بعمق بالذكاء الاصطناعي».",
+"Optional: add to your team’s totals":"اختياري: أضف إلى إجماليات فريقك",
+"This adds one anonymous line to the":"يضيف هذا سطراً واحداً مجهول الهوية إلى إجماليات فريق",
+"team’s totals. It has no name, age or test results, only whether each of five needs applies. Your employer cannot see your answers or your plan. Skip it if you prefer.":". لا يحتوي على اسم أو عمر أو نتائج فحوصات، بل فقط ما إذا كانت كل حاجة من الحاجات الخمس تنطبق. لا يستطيع صاحب العمل رؤية إجاباتك أو خطتك. تخطَّ هذه الخطوة إن شئت.",
+"Copy code":"نسخ الرمز",
+"Open the team form":"افتح نموذج الفريق",
+"Order: team, blood pressure, blood sugar, cholesterol, tobacco, low activity. 1 means it applies. Paste the code into the form’s one box.":"الترتيب: الفريق، ضغط الدم، سكر الدم، الكوليسترول، التبغ، قلة النشاط. الرقم 1 يعني أنها تنطبق. الصق الرمز في خانة النموذج الوحيدة.",
+"Your anonymous team code":"رمز فريقك المجهول",
+"Doctor handover brief":"ملخص لتسليمه للطبيب",
+"Prepared from your answers. Read it, then copy it or save it to show your doctor. Nothing is sent anywhere.":"أُعدّ من إجاباتك. اقرأه ثم انسخه أو احفظه لتُريه لطبيبك. لا يُرسَل شيء إلى أي مكان.",
+"Patient (self-reported)":"المريض (بيانات ذاتية)",
+"Body measurements":"قياسات الجسم",
+"Red flags":"علامات الخطر",
+"None reported.":"لم يُبلَّغ عن أي منها.",
+"Medication and exposure risks":"مخاطر الأدوية والتعرض",
+"Ex-smoker.":"مدخّن سابق.",
+"Sleeps under 6 hours on most nights.":"ينام أقل من ٦ ساعات في معظم الليالي.",
+"Known conditions and family history":"الحالات المعروفة والتاريخ العائلي",
+"Family history: diabetes.":"تاريخ عائلي: السكري.",
+"Family history: early heart attack or heart disease.":"تاريخ عائلي: نوبة قلبية أو مرض قلبي مبكر.",
+"Risk summary from the prevention check":"ملخص المخاطر من فحص الوقاية",
+"Other tests worth asking about":"فحوصات أخرى تستحق السؤال عنها",
+"Questions for the doctor":"أسئلة للطبيب",
+"Which of these tests should I have first, and how often should I repeat them?":"أيٌّ من هذه الفحوصات يجب أن أجريه أولاً، وكم مرة أكرره؟",
+"Should my regular medicines or painkillers change?":"هل يجب تغيير أدويتي المعتادة أو المسكنات؟",
+"Limits of this document":"حدود هذه الوثيقة",
+"Self-reported answers from a prevention tool. Not a diagnosis. Created after the patient approved this summary.":"إجابات ذاتية من أداة وقاية. ليست تشخيصاً. أُنشئت بعد موافقة المريض على هذا الملخص.",
+"Copy brief":"نسخ الملخص",
+"HbA1c (3-month average blood sugar)":"السكر التراكمي HbA1c (متوسط سكر الدم خلال ٣ أشهر)",
+"Fasting blood glucose":"سكر الدم الصائم",
+"Lipid profile (total, LDL, HDL, triglycerides)":"صورة الدهون (الكلي، LDL، HDL، الدهون الثلاثية)",
+"Blood pressure measurement, repeated on two days":"قياس ضغط الدم مع تكراره في يومين",
+"Resting ECG":"تخطيط القلب في الراحة",
+"Serum creatinine with eGFR (kidney function)":"الكرياتينين في المصل مع eGFR (وظائف الكلى)",
+"Urine albumin-to-creatinine ratio":"نسبة الألبومين إلى الكرياتينين في البول",
+"Liver function tests (ALT, AST, GGT)":"وظائف الكبد (ALT وAST وGGT)",
+"Liver ultrasound":"الموجات فوق الصوتية للكبد",
+"Printing isn’t available inside this page. Save the file and print it from there.":"الطباعة غير متاحة داخل هذه الصفحة. احفظ الملف واطبعه من هناك.",
+"Simulated lookup for this demo. The names are real UAE providers, but prices are rough estimates and availability is not live. Confirm with the clinic before you book.":"بحث محاكى لهذا العرض التجريبي. الأسماء لجهات حقيقية في الإمارات، لكن الأسعار تقديرات تقريبية والتوفر غير مباشر. تأكد من العيادة قبل الحجز.",
+"Estimated test prices by provider":"أسعار الفحوصات التقديرية حسب الجهة",
+"Test":"الفحص",
+"All tests, estimated total":"كل الفحوصات، الإجمالي التقديري",
+"Ask for the tests by the names above. Bring your doctor brief. Insurance may cover some of the cost.":"اطلب الفحوصات بالأسماء المذكورة أعلاه. أحضر ملخص الطبيب. قد يغطي التأمين جزءاً من التكلفة.",
+"Approve reminders":"الموافقة على التذكيرات",
+"The agent will prepare two calendar reminders. Nothing is created or sent until you approve.":"سيُعدّ الوكيل تذكيرين في التقويم. لا يُنشأ أو يُرسَل أي شيء حتى توافق.",
+"Lab tests":"فحوصات مخبرية",
+"Blood pressure re-check":"إعادة قياس ضغط الدم",
+"3 days from now, at home":"بعد ٣ أيام من الآن، في المنزل",
+"Email me the plan":"أرسل لي الخطة بالبريد",
+"optional":"اختياري",
+"WhatsApp number":"رقم واتساب",
+"optional, with country code":"اختياري، مع رمز الدولة",
+"Telegram username":"اسم مستخدم تيليجرام",
+"optional, alert sent to your Telegram":"اختياري، يُرسَل التنبيه إلى تيليجرام الخاص بك",
+"imo":"imo",
+"imo has no sending option for websites, so you get a Copy button":"لا يتيح imo الإرسال من المواقع، لذلك يظهر لك زر نسخ",
+"Cancel":"إلغاء",
+"Approved. Your two reminders are ready.":"تمت الموافقة. تذكيراك جاهزان.",
+"Add lab tests to Google Calendar":"أضف الفحوصات المخبرية إلى تقويم جوجل",
+"Add BP re-check to Google Calendar":"أضف إعادة قياس الضغط إلى تقويم جوجل",
+"Share plan on Telegram":"شارك الخطة على تيليجرام",
+"Copy plan for imo":"انسخ الخطة لـ imo",
+"Copy calendar (.ics) text":"نسخ نص التقويم (.ics)",
+"This viewer can’t save files that end in .ics. Save or copy the text, then name the file prevent-first.ics and open it with your calendar app. The Google Calendar buttons work without that.":"لا يستطيع هذا العارض حفظ ملفات ‎.ics. احفظ النص أو انسخه، ثم سمِّ الملف prevent-first.ics وافتحه بتطبيق التقويم. أزرار تقويم جوجل تعمل بدون ذلك.",
+"Done":"تم",
+"Calendar file text":"نص ملف التقويم",
+"Everything required is filled. Review the sections below, then press See my prevention plan.":"اكتمل كل ما هو مطلوب. راجع الأقسام أدناه ثم اضغط «اعرض خطتي الوقائية».",
+"Sex male":"الجنس: ذكر",
+"Sex female":"الجنس: أنثى",
+"Copied":"تم النسخ",
+"Copied.":"تم النسخ."
+};
+window.__I18N_TPL=[
+["{} years","{1} سنة"],
+["BMI {} ({})","مؤشر كتلة الجسم {1} ({2})"],
+["BMI {}","مؤشر كتلة الجسم {1}"],
+["Email: sent.","البريد الإلكتروني: تم الإرسال."],
+["Email: sent","البريد الإلكتروني: تم الإرسال"],
+["Email: not sent.","البريد الإلكتروني: لم يُرسَل."],
+["Email: not sent","البريد الإلكتروني: لم يُرسَل"],
+["Telegram: sent.","تيليجرام: تم الإرسال."],
+["Telegram: sent","تيليجرام: تم الإرسال"],
+["Telegram: not sent yet.","تيليجرام: لم يُرسَل بعد."],
+["Telegram: not sent.","تيليجرام: لم يُرسَل."],
+["Telegram: not sent","تيليجرام: لم يُرسَل"],
+["Open Telegram, find our bot (@{}), press Start, then tap Approve again.","افتح تيليجرام وابحث عن البوت الخاص بنا (@{1})، واضغط «ابدأ» (Start)، ثم اضغط «موافقة» مرة أخرى."],
+["Open Telegram, find our bot, press Start, then tap Approve again.","افتح تيليجرام وابحث عن البوت الخاص بنا، واضغط «ابدأ» (Start)، ثم اضغط «موافقة» مرة أخرى."],
+["That email address does not look right.","عنوان البريد الإلكتروني هذا لا يبدو صحيحاً."],
+["A Telegram username has 5 to 32 letters, numbers or underscores, for example @yourname.","يتكون اسم مستخدم تيليجرام من ٥ إلى ٣٢ حرفاً أو رقماً أو شرطة سفلية، مثل @yourname."],
+["Enter the WhatsApp number with country code, digits only, for example +971501234567.","أدخل رقم واتساب مع رمز الدولة، أرقاماً فقط، مثل +971501234567."],
+["{}, {}","{1}، {2}",true],
+["{}; {}","{1}؛ {2}",true],
+["Lab tests: {}","فحوصات مخبرية: {1}"],
+["Memory check-up: {}","فحص الذاكرة: {1}"],
+["Vaccines: {}","اللقاحات: {1}"],
+["Prevent First reminders ({})","تذكيرات «الوقاية أولاً» ({1})"],
+["{} · {} · BMI {}","{1} · {2} · مؤشر كتلة الجسم {3}"],
+["{} years · {} · BMI {} ({})","{1} سنة · {2} · مؤشر كتلة الجسم {3} ({4})"],
+["Scored {} diseases that apply to you: {} Higher, {} Moderate","قيّم {1} مرضاً ينطبق عليك: {2} بمستوى أعلى و{3} بمستوى متوسط"],
+["Scored {} diseases that apply to you: {} Higher","قيّم {1} مرضاً ينطبق عليك: {2} بمستوى أعلى"],
+["Scored {} diseases that apply to you: {} Higher, {} Moderate, {} Lower","قيّم {1} مرضاً ينطبق عليك: {2} أعلى و{3} متوسط و{4} أقل"],
+["Picked {} questions the form could not settle","اختار {1} أسئلة لم يتمكن النموذج من حسمها"],
+["Prepared on {} for your GP or family doctor.","أُعدّ بتاريخ {1} لطبيبك العام أو طبيب العائلة."],
+["Age {}, {}, Asian background.","العمر {1}، {2}، خلفية آسيوية."],
+["Age {}, {}.","العمر {1}، {2}."],
+["Waist {} cm: above the {} cm limit for Asian men.","الخصر {1} سم: أعلى من حد {2} سم للرجال الآسيويين."],
+["Waist {} cm: above the {} cm limit for Asian women.","الخصر {1} سم: أعلى من حد {2} سم للنساء الآسيويات."],
+["BMI {} kg/m2: obese using Asian-adjusted cut-offs (overweight from 23, obese from 27.5). On standard WHO cut-offs this would read overweight.","مؤشر كتلة الجسم {1} كغ/م٢: سمنة وفق الحدود المعدّلة للآسيويين (زيادة وزن من ٢٣، وسمنة من ٢٧٫٥). وفق حدود منظمة الصحة العالمية القياسية يُعدّ زيادة في الوزن."],
+["Reported by the patient or from a lab value: {}.","أبلغ عنه المريض أو من قيمة مخبرية: {1}."],
+["{}: higher ({})","{1}: أعلى ({2})"],
+["{}: moderate ({})","{1}: متوسط ({2})"],
+["{}: lower ({})","{1}: أقل ({2})"],
+["Tests to request for {}","فحوصات يُطلب إجراؤها لـ{1}"],
+["{} ({})","{1} ({2})"],
+["Screening clinics in Dubai for {}","عيادات الفحص في دبي لـ{1}"],
+["Reading the tests your plan needs: {}","قراءة الفحوصات التي تحتاجها خطتك: {1}"],
+["Checking {}","فحص {1}"],
+["Comparing estimated prices in AED","مقارنة الأسعار التقديرية بالدرهم"],
+["Find {} on Google Maps","ابحث عن {1} في خرائط جوجل"],
+["{} (lowest)","{1} (الأدنى)"],
+["The agent filled {} items below. Check them and change anything that is wrong.","ملأ الوكيل {1} بنود أدناه. راجعها وعدّل أي شيء غير صحيح."],
+["Age {}","العمر {1}"],
+["HbA1c {}%","السكر التراكمي {1}٪"],
+["Fasting glucose {} mg/dL","سكر الدم الصائم {1} ملغ/دل"],
+["LDL cholesterol {} mg/dL","كوليسترول LDL {1} ملغ/دل"],
+["Total cholesterol {} mg/dL","الكوليسترول الكلي {1} ملغ/دل"],
+["Blood pressure {} mmHg","ضغط الدم {1} ملم زئبق"],
+["Sex {}","الجنس: {1}"],
+["Tests to ask about for {}","فحوصات اسأل عنها لـ{1}"],
+["Showing {} of {} conditions that apply to you; the rest are in the Condition library.","نعرض {1} من {2} حالة تنطبق عليك، والباقي في مكتبة الأمراض."],
+["Age {} or older","{1} سنة أو أكثر"],
+["Blood pressure: check every year. Aim for below 120/80 mmHg.","ضغط الدم: افحصه كل سنة. الهدف أقل من ١٢٠/٨٠ ملم زئبق."],
+["Cholesterol (lipid profile): every year, because you have risk factors.","الكوليسترول (صورة الدهون): كل سنة لأن لديك عوامل خطر."],
+["HbA1c or fasting blood glucose: get tested now, then every 3 years if normal and every year if borderline.","السكر التراكمي أو سكر الدم الصائم: أجرِ الفحص الآن، ثم كل ٣ سنوات إذا كان طبيعياً وكل سنة إذا كان على الحد."],
+["{} · {}","{1} · {2}",true],
+["Add {} to Google Calendar","أضف {1} إلى تقويم جوجل"],
+["Healthy range {} to {} for you.","النطاق الصحي بالنسبة لك من {1} إلى {2}."],
+["Under {} cm for you.","أقل من {1} سم بالنسبة لك."]
+];
+
+</script>
+<script id="i18n-engine">
+/* Language switcher: English / Arabic. Translates what is on screen in this browser; nothing is sent anywhere. */
+(function(){
+'use strict';
+var D=window.__I18N_DICT||{},T=window.__I18N_TPL||[];
+var ATTRS=['placeholder','aria-label','title','alt'];
+var SPLIT;try{SPLIT=new RegExp('(?<=[.?!])\\s+');}catch(e){SPLIT=/\s{2,}/;}
+var lang='en',busy=false,store=new WeakMap(),attrStore=new WeakMap(),compiled=null;
+function norm(s){return String(s).replace(/\s+/g,' ').trim();}
+function esc(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
+function compile(){
+  var PH='((?:(?![.?!]\\s)[\\s\\S])+?)';
+  compiled=T.map(function(p){
+    var parts=p[0].split('{}'),src='^'+parts.map(esc).join(PH)+'$';
+    return {re:new RegExp(src),ar:p[1],n:parts.length-1,len:parts.join('').length,strict:!!p[2]};
+  }).sort(function(a,b){return b.len-a.len;});
+}
+function tr(text,depth){
+  depth=depth||0;
+  var core=norm(text);if(!core||!/[A-Za-z]/.test(core))return null;
+  var lead=text.match(/^\s*/)[0],tail=text.match(/\s*$/)[0];
+  var hit=null;
+  if(Object.prototype.hasOwnProperty.call(D,core))hit=D[core];
+  else{var cap=core.charAt(0).toUpperCase()+core.slice(1);if(Object.prototype.hasOwnProperty.call(D,cap))hit=D[cap];}
+  if(hit!==null)return lead+hit+tail;
+  if(!compiled)compile();
+  var raw=text.trim();
+  if(raw.indexOf(' \u00b7 ')>0){
+    for(var q=0;q<compiled.length;q++){if(!compiled[q].dot)continue;var mm=compiled[q].re.exec(raw);
+      if(mm){var o2=compiled[q].ar.replace(/\{(\d)\}/g,function(_,k){var v=mm[+k]||'';var t=depth<2?tr(v,depth+1):null;return t===null?v:t.trim();});return lead+o2+tail;}}
+  }
+  if(depth<3&&raw.indexOf(' \u00b7 ')>0){
+    var anyJ=false,js=raw.split(' \u00b7 ').map(function(x){var t=tr(x,depth+1);if(t!==null){anyJ=true;return t.trim();}return x;});
+    if(anyJ)return lead+js.join(' \u00b7 ')+tail;
+  }
+  for(var i=0;i<compiled.length;i++){
+    var m=compiled[i].re.exec(raw)||compiled[i].re.exec(core);
+    if(m){var bad=false;var out=compiled[i].ar.replace(/\{(\d)\}/g,function(_,k){var v=m[+k]||'';var t=depth<5?tr(v,depth+1):null;if(t===null&&compiled[i].strict&&/[A-Za-z]{3,}/.test(v))bad=true;return t===null?v:t.trim();});if(bad)continue;return lead+out+tail;}
+  }
+  if(depth<3&&(/\n/.test(raw)||/[.?!]\s+\S/.test(raw))){
+    var any=false,lines=text.split('\n').map(function(line){
+      var m=/^(\s*(?:\d+\.|-)\s+)?([\s\S]*)$/.exec(line),pre=m[1]||'',body=m[2];
+      if(!body.trim())return line;
+      var whole=tr(body,depth+1);if(whole!==null){any=true;return pre+whole;}
+      var parts=body.split(SPLIT);if(parts.length<2)return line;
+      var did=false,out=parts.map(function(p){var t=tr(p,depth+1);if(t!==null){did=true;return t.trim();}return p;});
+      if(did){any=true;return pre+out.join(' ');}return line;});
+    if(any)return lines.join('\n');
+  }
+  return null;
+}
+function skip(n){var p=n.parentNode;return !p||/^(SCRIPT|STYLE|NOSCRIPT|CODE)$/.test(p.nodeName)||(p.closest&&p.closest('[data-noi18n]'));}
+function doText(n){
+  if(skip(n))return;
+  var rec=store.get(n),cur=n.nodeValue;
+  if(lang==='ar'){
+    if(rec&&cur===rec.ar)return;
+    var t=tr(cur);if(t!==null&&t!==cur){store.set(n,{en:cur,ar:t});n.nodeValue=t;}else if(rec)store.delete(n);
+  }else if(rec&&cur===rec.ar){n.nodeValue=rec.en;store.delete(n);}
+}
+function doAttrs(e){
+  for(var i=0;i<ATTRS.length;i++){var a=ATTRS[i];if(!e.hasAttribute||!e.hasAttribute(a))continue;
+    var rec=attrStore.get(e)||{},r=rec[a],cur=e.getAttribute(a);
+    if(lang==='ar'){if(r&&cur===r.ar)continue;var t=tr(cur);if(t!==null&&t!==cur){rec[a]={en:cur,ar:t};attrStore.set(e,rec);e.setAttribute(a,t);}}
+    else if(r&&cur===r.ar){e.setAttribute(a,r.en);delete rec[a];}
+  }
+}
+var DIRSEL='p,li,h1,h2,h3,h4,h5,h6,td,th,label,summary,textarea';
+function fixDir(e){if(!e.matches)return;if(lang==='ar'){if(e.matches(DIRSEL)&&!e.hasAttribute('dir')){e.setAttribute('dir','auto');e.setAttribute('data-i18n-dir','1');}}else if(e.hasAttribute&&e.hasAttribute('data-i18n-dir')){e.removeAttribute('dir');e.removeAttribute('data-i18n-dir');}}
+function walk(root){
+  if(!root)return;
+  if(root.nodeType===3){doText(root);return;}
+  if(root.nodeType!==1&&root.nodeType!==9)return;
+  var w=document.createTreeWalker(root,5),n;
+  if(root.nodeType===1){doAttrs(root);fixDir(root);}
+  while(n=w.nextNode()){if(n.nodeType===3)doText(n);else{doAttrs(n);fixDir(n);}}
+}
+function titleFix(){var t=document.querySelector('title');if(t&&t.firstChild)doText(t.firstChild);}
+function apply(){busy=true;try{walk(document.body);titleFix();}finally{busy=false;}}
+var obs=null;
+function observe(){
+  if(obs||typeof MutationObserver==='undefined')return;
+  obs=new MutationObserver(function(muts){
+    if(busy)return;busy=true;
+    try{muts.forEach(function(m){
+      if(m.type==='characterData')doText(m.target);
+      else if(m.type==='attributes')doAttrs(m.target);
+      else m.addedNodes.forEach(function(x){walk(x);});
+    });}finally{busy=false;}
+  });
+  obs.observe(document.documentElement,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:ATTRS});
+}
+function setLang(l,save){
+  lang=l==='ar'?'ar':'en';
+  var h=document.documentElement;h.setAttribute('lang',lang);h.setAttribute('dir',lang==='ar'?'rtl':'ltr');
+  if(save){try{localStorage.setItem('pf-lang',lang);}catch(e){}}
+  apply();syncBtn();
+  try{document.dispatchEvent(new CustomEvent('i18n-change',{detail:{lang:lang}}));}catch(e){}
+}
+var btn=null;
+function syncBtn(){if(btn){btn.textContent=lang==='ar'?'English':'العربية';btn.setAttribute('aria-label',lang==='ar'?'Switch to English':'التبديل إلى العربية');btn.setAttribute('lang',lang==='ar'?'en':'ar');}}
+function mkBtn(){
+  btn=document.createElement('button');btn.type='button';btn.id='lang-toggle';btn.setAttribute('data-noi18n','1');
+  btn.style.cssText='position:fixed;bottom:14px;inset-inline-end:14px;z-index:9999;min-height:44px;padding:8px 16px;border-radius:999px;border:1.5px solid #0f5c4d;background:#fff;color:#0f5c4d;font:600 15px/1 system-ui,Segoe UI,Tahoma,Arial,sans-serif;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.2)';
+  btn.addEventListener('click',function(){setLang(lang==='ar'?'en':'ar',true);});
+  document.body.appendChild(btn);syncBtn();
+}
+function css(){
+  var s=document.createElement('style');
+  s.textContent='html[dir=rtl] body{font-family:"Segoe UI",Tahoma,"Noto Naskh Arabic","Noto Sans Arabic",Arial,sans-serif;line-height:1.75}html[dir=rtl] *{letter-spacing:0!important;text-transform:none!important;font-family:"Segoe UI",Tahoma,"Noto Naskh Arabic","Noto Sans Arabic",Arial,sans-serif!important}html[dir=rtl] textarea,html[dir=rtl] input{text-align:start}html[dir=rtl] input[type=email],html[dir=rtl] input[type=url],html[dir=rtl] input[type=tel],html[dir=rtl] input[type=date],html[dir=rtl] input[type=number]{direction:ltr;text-align:right}';
+  document.head.appendChild(s);
+}
+function boot(){
+  css();mkBtn();observe();
+  var want='en';try{var q=new URLSearchParams(location.search).get('lang');if(q==='ar'||q==='en'){want=q;localStorage.setItem('pf-lang',q);}else want=localStorage.getItem('pf-lang')||'en';}catch(e){}
+  if(want==='ar')setLang('ar',false);
+  window.I18N={set:function(l){setLang(l,true);},get:function(){return lang;},tr:tr};
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+})();
+
+</script>
+</body></html>
