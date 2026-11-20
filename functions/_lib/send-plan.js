@@ -1,22 +1,17 @@
-// Netlify Function: receives the approved reminder plan from Prevent First and emails it.
-// Free services only: Brevo (email) and, optionally, Telegram (a private count-only ping to you).
-// Environment variables (set in Netlify > Site configuration > Environment variables):
-//   BREVO_API_KEY      required. From Brevo > SMTP & API > API keys.
-//   SENDER_EMAIL       required. An address you verified in Brevo > Senders.
-//   SENDER_NAME        optional. Default "Prevent First".
-//   ALLOWED_ORIGIN     optional. e.g. https://preventfirst.netlify.app (blocks other websites).
-//   TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID  optional. Sends YOU a short "a plan was sent" ping with NO health details.
+// Cloudflare Pages Function: receives the approved reminder plan from Prevent First and sends it via Brevo + Telegram.
 
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-const hits = new Map(); // best-effort rate limit (resets when the function restarts)
+const AR_MONTHS = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+const hits = new Map();
 
-const esc = s => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const esc = s => String(s == null ? '' : s).replace(/&/g,'&').replace(/</g,'<').replace(/>/g,'>').replace(/"/g,'"');
 const clip = (s, n) => String(s == null ? '' : s).slice(0, n);
 
 function toObject(v) {
   for (let i = 0; i < 3 && typeof v === 'string'; i++) { try { v = JSON.parse(v); } catch (e) { return {}; } }
   return (v && typeof v === 'object') ? v : {};
 }
+
 function fmtDate(iso, ar) {
   const m = /^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2}))?/.exec(String(iso || ''));
   if (!m) return ar ? 'يُحدَّد الموعد لاحقاً' : 'date to be confirmed';
@@ -26,8 +21,6 @@ function fmtDate(iso, ar) {
   return ar ? `${day}، ${h % 12 || 12}:${m[5]} ${h >= 12 ? 'م' : 'ص'}` : `${day}, ${h % 12 || 12}:${m[5]} ${h >= 12 ? 'PM' : 'AM'}`;
 }
 
-// 30-day protocol + plain-language note about the condition. AI-written when GEMINI_API_KEY is set (fixed prompt, no open proxy); otherwise a safe fixed version.
-const AR_MONTHS = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
 const FALLBACK_AR = {
   why: 'تشير إجاباتك إلى أن هذا هو المجال الذي ينبغي البدء به. هذا دليل للفحص مبني على ما ذكرته وليس تشخيصاً.',
   protocol: [
@@ -36,6 +29,7 @@ const FALLBACK_AR = {
     'الأيام 21-30: ارفع نشاطك تدريجياً إلى 150 دقيقة أسبوعياً من النشاط المعتدل (مشي سريع)، وراجع نتائجك مع طبيبك.'
   ]
 };
+
 const FALLBACK = {
   why: 'Your answers point to this as the area to look at first. This is a screening guide based on what you told us, not a diagnosis.',
   protocol: [
@@ -44,24 +38,32 @@ const FALLBACK = {
     'Days 21-30: Build up to 150 minutes a week of moderate activity (brisk walking) and review your results and risk score with your doctor.'
   ]
 };
-async function extras(focus, higher, tests, ar) {
+
+async function extras(env, focus, higher, tests, ar) {
   const FB = ar ? FALLBACK_AR : FALLBACK;
-  if (!process.env.GEMINI_API_KEY) return FB;
+  if (!env.GEMINI_API_KEY) return FB;
   try {
     const prompt = 'You write a short, careful prevention note for a patient. Condition focus: ' + focus + '. Also higher risk for: ' + (higher.join(', ') || 'none') + '. Tests planned: ' + (tests.join(', ') || 'none') + '. Return ONLY JSON: {"why": "2 plain sentences on why this matters and that this is screening, not diagnosis", "protocol": ["Days 1-7: ...", "Days 8-20: ...", "Days 21-30: ..."]}. Rules: no drug names or doses, no diagnosis, each protocol item under 35 words, tell them to follow their doctor.' + (ar ? ' Write every string value in clear Modern Standard Arabic (keep the "Days 1-7" style as "الأيام 1-7").' : '');
-    const model = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
-    const ctl = new AbortController(); const timer = setTimeout(() => ctl.abort(), 9000);
-    const r = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(model) + ':generateContent', { method: 'POST', signal: ctl.signal,
-      headers: { 'x-goog-api-key': process.env.GEMINI_API_KEY, 'content-type': 'application/json' },
-      body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: prompt }] }], generationConfig: { responseMimeType: 'application/json', temperature: 0.3 } }) });
+    const model = env.GEMINI_MODEL || 'gemini-2.5-flash';
+    const ctl = new AbortController();
+    const timer = setTimeout(() => ctl.abort(), 9000);
+    const r = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(model) + ':generateContent', {
+      method: 'POST',
+      signal: ctl.signal,
+      headers: { 'x-goog-api-key': env.GEMINI_API_KEY, 'content-type': 'application/json' },
+      body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: prompt }] }], generationConfig: { responseMimeType: 'application/json', temperature: 0.3 } })
+    });
     clearTimeout(timer);
-    if (!r.ok) { console.error('plan AI error', r.status); return FB; }
-    const j = await r.json(); const t = j.candidates && j.candidates[0] && j.candidates[0].content.parts[0].text;
+    if (!r.ok) return FB;
+    const j = await r.json();
+    const t = j.candidates && j.candidates[0] && j.candidates[0].content.parts[0].text;
     const o = JSON.parse(t);
     const proto = (Array.isArray(o.protocol) ? o.protocol : []).slice(0, 4).map(x => clip(x, 300)).filter(Boolean);
     const why = clip(o.why, 400);
     return (proto.length >= 2 && why) ? { why, protocol: proto } : FB;
-  } catch (e) { console.error('plan AI failed', e && e.message); return FB; }
+  } catch (e) {
+    return FB;
+  }
 }
 
 function buildAr(focus, tests, higher, events, ex) {
@@ -91,40 +93,63 @@ function build(data, ex) {
   return { focus, text, html, subject: 'Your Prevent First reminders: ' + focus };
 }
 
-// Telegram: the person opens our bot once and presses Start. We then find their chat by username and send the plan. Nothing is stored.
-async function sendTelegram(username, text) {
-  const token = process.env.TELEGRAM_BOT_TOKEN;
+async function sendTelegram(env, username, text) {
+  const token = env.TELEGRAM_BOT_TOKEN;
   if (!token) return { status: 'unavailable', note: 'Telegram is not set up on this site' };
-  const bot = process.env.TELEGRAM_BOT_USERNAME || '';
+  const bot = env.TELEGRAM_BOT_USERNAME || '';
   try {
     const u = await fetch('https://api.telegram.org/bot' + token + '/getUpdates?limit=100&timeout=0');
     const j = await u.json();
     if (!j.ok) return { status: 'error', note: 'Telegram says: ' + clip(j.description, 80) };
     let chat = null;
     for (const up of (j.result || []).slice().reverse()) {
-      const m = up.message || up.edited_message; const f = m && m.from;
-      if (f && f.username && f.username.toLowerCase() === username.toLowerCase() && m.chat && m.chat.type === 'private') { chat = m.chat.id; break; }
+      const m = up.message || up.edited_message;
+      const f = m && m.from;
+      if (f && f.username && f.username.toLowerCase() === username.toLowerCase() && m.chat && m.chat.type === 'private') {
+        chat = m.chat.id;
+        break;
+      }
     }
     if (!chat) return { status: 'not_started', bot };
-    const r = await fetch('https://api.telegram.org/bot' + token + '/sendMessage', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ chat_id: chat, text: clip(text, 3800) }) });
+    const r = await fetch('https://api.telegram.org/bot' + token + '/sendMessage', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: chat, text: clip(text, 3800) })
+    });
     return r.ok ? { status: 'sent' } : { status: 'error', note: 'Telegram replied ' + r.status };
-  } catch (e) { return { status: 'error', note: 'could not reach Telegram' }; }
+  } catch (e) {
+    return { status: 'error', note: 'could not reach Telegram' };
+  }
 }
-const reply = (code, obj, origin) => ({ statusCode: code, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': origin || '*', 'Access-Control-Allow-Headers': 'Content-Type', 'Access-Control-Allow-Methods': 'POST, OPTIONS' }, body: JSON.stringify(obj) });
 
-exports.handler = async (event) => {
-  const origin = process.env.ALLOWED_ORIGIN || '*';
-  if (event.httpMethod === 'OPTIONS') return reply(204, {}, origin);
-  if (event.httpMethod !== 'POST') return reply(405, { ok: false, error: 'Use POST' }, origin);
-  const reqOrigin = (event.headers && (event.headers.origin || event.headers.Origin)) || '';
-  if (process.env.ALLOWED_ORIGIN && reqOrigin && reqOrigin !== process.env.ALLOWED_ORIGIN) return reply(403, { ok: false, error: 'Origin not allowed' }, origin);
-  const ip = (event.headers && (event.headers['x-nf-client-connection-ip'] || event.headers['x-forwarded-for'])) || 'unknown';
+const reply = (code, obj, origin) => new Response(code === 204 ? null : JSON.stringify(obj), {
+  status: code,
+  headers: {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': origin || '*',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS'
+  }
+});
+
+export async function onRequest(context) {
+  const { request, env } = context;
+  const origin = env.ALLOWED_ORIGIN || '*';
+
+  if (request.method === 'OPTIONS') return reply(204, {}, origin);
+  if (request.method !== 'POST') return reply(405, { ok: false, error: 'Use POST' }, origin);
+
+  const reqOrigin = request.headers.get('origin') || '';
+  if (env.ALLOWED_ORIGIN && reqOrigin && reqOrigin !== env.ALLOWED_ORIGIN) {
+    return reply(403, { ok: false, error: 'Origin not allowed' }, origin);
+  }
+
+  const ip = request.headers.get('cf-connecting-ip') || request.headers.get('x-forwarded-for') || 'unknown';
   const now = Date.now(), arr = (hits.get(ip) || []).filter(t => now - t < 3600e3);
-  if (arr.length >= 5) return reply(429, { ok: false, error: 'Too many requests. Try again later.' }, origin);
+  if (arr.length >= 15) return reply(429, { ok: false, error: 'Too many requests. Try again later.' }, origin);
   arr.push(now); hits.set(ip, arr);
 
-  let raw = event.body || '';
-  if (event.isBase64Encoded) raw = Buffer.from(raw, 'base64').toString('utf8');
+  const raw = await request.text();
   if (raw.length > 20000) return reply(413, { ok: false, error: 'Too large' }, origin);
   const data = toObject(raw);
   if (data.source !== 'prevent-first') return reply(400, { ok: false, error: 'Unexpected payload' }, origin);
@@ -133,27 +158,39 @@ exports.handler = async (event) => {
   const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const tgName = clip(data.recipient && data.recipient.telegram, 40).trim().replace(/^@/, '');
   const tgOk = /^[A-Za-z0-9_]{5,32}$/.test(tgName);
-  const _h = (Array.isArray(data.conditions_higher_risk) ? data.conditions_higher_risk : []).slice(0, 12).map(t => clip(t, 80)); const _t = (Array.isArray(data.tests) ? data.tests : []).slice(0, 12).map(t => clip(t, 80));
-  const plan = build(data, (emailOk || tgOk) ? await extras(clip(data.focus_condition || 'your health check', 120), _h, _t, data.lang === 'ar') : null);
+
+  const _h = (Array.isArray(data.conditions_higher_risk) ? data.conditions_higher_risk : []).slice(0, 12).map(t => clip(t, 80));
+  const _t = (Array.isArray(data.tests) ? data.tests : []).slice(0, 12).map(t => clip(t, 80));
+  const plan = build(data, (emailOk || tgOk) ? await extras(env, clip(data.focus_condition || 'your health check', 120), _h, _t, data.lang === 'ar') : null);
   const result = { ok: true, email: 'skipped' };
 
   if (emailOk) {
-    if (!process.env.BREVO_API_KEY || !process.env.SENDER_EMAIL) return reply(500, { ok: false, error: 'Email service is not configured' }, origin);
+    if (!env.BREVO_API_KEY || !env.SENDER_EMAIL) return reply(500, { ok: false, error: 'Email service is not configured' }, origin);
     const r = await fetch('https://api.brevo.com/v3/smtp/email', {
       method: 'POST',
-      headers: { 'api-key': process.env.BREVO_API_KEY, 'Content-Type': 'application/json', accept: 'application/json' },
-      body: JSON.stringify({ sender: { name: process.env.SENDER_NAME || 'Prevent First', email: process.env.SENDER_EMAIL }, to: [{ email }], subject: plan.subject, htmlContent: plan.html, textContent: plan.text })
+      headers: { 'api-key': env.BREVO_API_KEY, 'Content-Type': 'application/json', accept: 'application/json' },
+      body: JSON.stringify({ sender: { name: env.SENDER_NAME || 'Prevent First', email: env.SENDER_EMAIL }, to: [{ email }], subject: plan.subject, htmlContent: plan.html, textContent: plan.text })
     });
     if (!r.ok) return reply(502, { ok: false, error: 'Email provider replied ' + r.status }, origin);
     result.email = 'sent';
   }
+
   if (tgOk) {
-    const t = await sendTelegram(tgName, plan.text);
-    result.telegram = t.status; if (t.bot) result.bot = t.bot; if (t.note) result.telegram_note = t.note;
+    const t = await sendTelegram(env, tgName, plan.text);
+    result.telegram = t.status;
+    if (t.bot) result.bot = t.bot;
+    if (t.note) result.telegram_note = t.note;
   }
-  if (process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_CHAT_ID) {
-    try { await fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ chat_id: process.env.TELEGRAM_CHAT_ID, text: `Prevent First: a reminder plan was approved (email ${result.email}).` }) }); } catch (e) {}
+
+  if (env.TELEGRAM_BOT_TOKEN && env.TELEGRAM_CHAT_ID) {
+    try {
+      await fetch(`https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chat_id: env.TELEGRAM_CHAT_ID, text: `Prevent First: a reminder plan was approved (email ${result.email}).` })
+      });
+    } catch (e) {}
   }
+
   return reply(200, result, origin);
-};
-exports._build = build;
+}
