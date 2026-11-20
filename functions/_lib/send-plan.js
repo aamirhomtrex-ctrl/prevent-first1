@@ -80,7 +80,7 @@ function build(data, ex) {
   const arr = (x) => (Array.isArray(x) ? x : []);
   const focus = clip((AR && A.focus) || data.focus_condition || 'your health check', 120);
   const tests = (AR && arr(A.tests).length ? arr(A.tests) : arr(data.tests)).slice(0, 12).map(t => clip(t, 120));
-  const higher = (AR && arr(A.higher).length ? arr(A.higher) : arr(data.conditions_higher_risk)).slice(0, 12).map(t => clip(t, 100));
+  const higher = (AR && arr(A.higher).length ? arr(A.higher) : arr(data.conditions_higher_risk)).slice(0, 12).map(t => clip(t, 100)).filter(t => t !== focus);
   const events = (Array.isArray(data.events) ? data.events : []).slice(0, 6).map((e, i) => ({ title: clip((AR && arr(A.titles)[i]) || e.title || 'Reminder', 200), when: fmtDate(e.start, AR) }));
   if (AR) return buildAr(focus, tests, higher, events, ex);
   const disclaimer = 'Self-reported information. Not a diagnosis. Please talk to a doctor about anything that worries you.';
@@ -92,10 +92,11 @@ function build(data, ex) {
 }
 
 // Telegram: the person opens our bot once and presses Start. We then find their chat by username and send the plan. Nothing is stored.
+function botName() { const b = String(process.env.TELEGRAM_BOT_USERNAME || '').trim().replace(/^@/, ''); return /bot$/i.test(b) ? b : 'preventfirstbot'; }
 async function sendTelegram(username, text) {
   const token = process.env.TELEGRAM_BOT_TOKEN;
   if (!token) return { status: 'unavailable', note: 'Telegram is not set up on this site' };
-  const bot = process.env.TELEGRAM_BOT_USERNAME || '';
+  const bot = botName();
   try {
     const u = await fetch('https://api.telegram.org/bot' + token + '/getUpdates?limit=100&timeout=0');
     const j = await u.json();
@@ -149,7 +150,7 @@ exports.handler = async (event) => {
   }
   if (tgOk) {
     const t = await sendTelegram(tgName, plan.text);
-    result.telegram = t.status; if (t.bot) result.bot = t.bot; if (t.note) result.telegram_note = t.note;
+    result.telegram = t.status; result.bot = botName(); if (t.note) result.telegram_note = t.note;
   }
   if (process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_CHAT_ID) {
     try { await fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ chat_id: process.env.TELEGRAM_CHAT_ID, text: `Prevent First: a reminder plan was approved (email ${result.email}).` }) }); } catch (e) {}
@@ -157,3 +158,4 @@ exports.handler = async (event) => {
   return reply(200, result, origin);
 };
 exports._build = build;
+exports._botName = botName;
